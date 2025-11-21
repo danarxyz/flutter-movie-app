@@ -40,9 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       // Navigate to main screen
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const MainScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else {
       // Show error message
@@ -80,17 +78,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     'Movie App',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Masuk ke akun Anda',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 48),
                   // Username field
@@ -206,46 +204,46 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Demo credentials
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue[200]!),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 20,
-                              color: Colors.blue[700],
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Demo Login:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Username: admin',
-                          style: TextStyle(color: Colors.blue[900]),
-                        ),
-                        Text(
-                          'Password: admin123',
-                          style: TextStyle(color: Colors.blue[900]),
-                        ),
-                      ],
-                    ),
-                  ),
+
+                  // Container(
+                  //   padding: const EdgeInsets.all(16),
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.blue[50],
+                  //     borderRadius: BorderRadius.circular(12),
+                  //     border: Border.all(color: Colors.blue[200]!),
+                  //   ),
+                  //   child: Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       Row(
+                  //         children: [
+                  //           Icon(
+                  //             Icons.info_outline,
+                  //             size: 20,
+                  //             color: Colors.blue[700],
+                  //           ),
+                  //           const SizedBox(width: 8),
+                  //           Text(
+                  //             'Demo Login:',
+                  //             style: TextStyle(
+                  //               fontWeight: FontWeight.bold,
+                  //               color: Colors.blue[700],
+                  //             ),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //       const SizedBox(height: 8),
+                  //       Text(
+                  //         'Username: admin',
+                  //         style: TextStyle(color: Colors.blue[900]),
+                  //       ),
+                  //       Text(
+                  //         'Password: admin123',
+                  //         style: TextStyle(color: Colors.blue[900]),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                 ],
               ),
             ),
