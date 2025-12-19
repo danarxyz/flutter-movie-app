@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'providers/movie_provider.dart';
 import 'providers/tv_provider.dart';
@@ -7,7 +8,12 @@ import 'providers/favorites_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables
+  await dotenv.load(fileName: '.env');
+  
   runApp(const MyApp());
 }
 

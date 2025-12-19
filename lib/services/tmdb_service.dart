@@ -26,15 +26,15 @@ class TMDBService {
 
   /// Get trending movies (week)
   Future<List<Movie>> getTrendingMovies({int page = 1}) async {
-    final url =
-        Uri.parse('${ApiConfig.baseUrl}/trending/movie/week?page=$page');
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}/trending/movie/week?page=$page',
+    );
     return _fetchMovies(url);
   }
 
   /// Get now playing movies
   Future<List<Movie>> getNowPlayingMovies({int page = 1}) async {
-    final url =
-        Uri.parse('${ApiConfig.baseUrl}/movie/now_playing?page=$page');
+    final url = Uri.parse('${ApiConfig.baseUrl}/movie/now_playing?page=$page');
     return _fetchMovies(url);
   }
 
@@ -92,7 +92,8 @@ class TMDBService {
     // Genre ID 16 is Animation
     // Filter by Japanese origin country for more accurate anime results
     final url = Uri.parse(
-        '${ApiConfig.baseUrl}/discover/tv?with_genres=16&with_origin_country=JP&sort_by=popularity.desc&page=$page');
+      '${ApiConfig.baseUrl}/discover/tv?with_genres=16&with_origin_country=JP&sort_by=popularity.desc&page=$page',
+    );
     return _fetchTVShows(url);
   }
 
@@ -106,7 +107,9 @@ class TMDBService {
         final data = json.decode(response.body);
         return TVShow.fromJson(data);
       } else {
-        throw Exception('Failed to load TV show details: ${response.statusCode}');
+        throw Exception(
+          'Failed to load TV show details: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Error fetching TV show details: $e');
@@ -119,7 +122,8 @@ class TMDBService {
   Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
     if (query.isEmpty) return [];
     final url = Uri.parse(
-        '${ApiConfig.baseUrl}/search/movie?query=${Uri.encodeComponent(query)}&page=$page');
+      '${ApiConfig.baseUrl}/search/movie?query=${Uri.encodeComponent(query)}&page=$page',
+    );
     return _fetchMovies(url);
   }
 
@@ -127,17 +131,21 @@ class TMDBService {
   Future<List<TVShow>> searchTVShows(String query, {int page = 1}) async {
     if (query.isEmpty) return [];
     final url = Uri.parse(
-        '${ApiConfig.baseUrl}/search/tv?query=${Uri.encodeComponent(query)}&page=$page');
+      '${ApiConfig.baseUrl}/search/tv?query=${Uri.encodeComponent(query)}&page=$page',
+    );
     return _fetchTVShows(url);
   }
 
   /// Search for both movies and TV shows (multi search)
-  Future<Map<String, List<dynamic>>> searchMulti(String query,
-      {int page = 1}) async {
+  Future<Map<String, List<dynamic>>> searchMulti(
+    String query, {
+    int page = 1,
+  }) async {
     if (query.isEmpty) return {'movies': [], 'tvShows': []};
 
     final url = Uri.parse(
-        '${ApiConfig.baseUrl}/search/multi?query=${Uri.encodeComponent(query)}&page=$page');
+      '${ApiConfig.baseUrl}/search/multi?query=${Uri.encodeComponent(query)}&page=$page',
+    );
 
     try {
       final response = await http.get(url, headers: ApiConfig.headers);
