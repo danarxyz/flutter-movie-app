@@ -15,12 +15,24 @@ class TvProvider extends ChangeNotifier {
   // Cache for TV show details by ID
   final Map<int, TVShow> _tvShowCache = {};
 
+  // Page tracking for pagination
+  int _popularPage = 1;
+  int _topRatedPage = 1;
+  int _trendingPage = 1;
+  int _animePage = 1;
+
   // Loading states
   bool _isLoadingPopular = false;
   bool _isLoadingTopRated = false;
   bool _isLoadingTrending = false;
   bool _isLoadingOnTheAir = false;
   bool _isLoadingAnime = false;
+
+  // Loading more states
+  bool _isLoadingMorePopular = false;
+  bool _isLoadingMoreTopRated = false;
+  bool _isLoadingMoreTrending = false;
+  bool _isLoadingMoreAnime = false;
 
   // Error states
   String? _popularError;
@@ -42,20 +54,26 @@ class TvProvider extends ChangeNotifier {
   bool get isLoadingOnTheAir => _isLoadingOnTheAir;
   bool get isLoadingAnime => _isLoadingAnime;
 
+  bool get isLoadingMorePopular => _isLoadingMorePopular;
+  bool get isLoadingMoreTopRated => _isLoadingMoreTopRated;
+  bool get isLoadingMoreTrending => _isLoadingMoreTrending;
+  bool get isLoadingMoreAnime => _isLoadingMoreAnime;
+
   String? get popularError => _popularError;
   String? get topRatedError => _topRatedError;
   String? get trendingError => _trendingError;
   String? get onTheAirError => _onTheAirError;
   String? get animeError => _animeError;
 
-  // Fetch popular TV shows
+  // Fetch popular TV shows (reset to page 1)
   Future<void> fetchPopularTVShows() async {
     _isLoadingPopular = true;
     _popularError = null;
+    _popularPage = 1;
     notifyListeners();
 
     try {
-      _popularTVShows = await _tmdbService.getPopularTVShows();
+      _popularTVShows = await _tmdbService.getPopularTVShows(page: _popularPage);
       _isLoadingPopular = false;
       notifyListeners();
     } catch (e) {
@@ -65,14 +83,35 @@ class TvProvider extends ChangeNotifier {
     }
   }
 
-  // Fetch top rated TV shows
-  Future<void> fetchTopRatedTVShows() async {
-    _isLoadingTopRated = true;
-    _topRatedError = null;
+  // Load more popular TV shows
+  Future<void> loadMorePopularTVShows() async {
+    if (_isLoadingMorePopular || _isLoadingPopular) return;
+
+    _isLoadingMorePopular = true;
     notifyListeners();
 
     try {
-      _topRatedTVShows = await _tmdbService.getTopRatedTVShows();
+      _popularPage++;
+      final moreShows = await _tmdbService.getPopularTVShows(page: _popularPage);
+      _popularTVShows.addAll(moreShows);
+      _isLoadingMorePopular = false;
+      notifyListeners();
+    } catch (e) {
+      _popularPage--;
+      _isLoadingMorePopular = false;
+      notifyListeners();
+    }
+  }
+
+  // Fetch top rated TV shows (reset to page 1)
+  Future<void> fetchTopRatedTVShows() async {
+    _isLoadingTopRated = true;
+    _topRatedError = null;
+    _topRatedPage = 1;
+    notifyListeners();
+
+    try {
+      _topRatedTVShows = await _tmdbService.getTopRatedTVShows(page: _topRatedPage);
       _isLoadingTopRated = false;
       notifyListeners();
     } catch (e) {
@@ -82,19 +121,60 @@ class TvProvider extends ChangeNotifier {
     }
   }
 
-  // Fetch trending TV shows
-  Future<void> fetchTrendingTVShows() async {
-    _isLoadingTrending = true;
-    _trendingError = null;
+  // Load more top rated TV shows
+  Future<void> loadMoreTopRatedTVShows() async {
+    if (_isLoadingMoreTopRated || _isLoadingTopRated) return;
+
+    _isLoadingMoreTopRated = true;
     notifyListeners();
 
     try {
-      _trendingTVShows = await _tmdbService.getTrendingTVShows();
+      _topRatedPage++;
+      final moreShows = await _tmdbService.getTopRatedTVShows(page: _topRatedPage);
+      _topRatedTVShows.addAll(moreShows);
+      _isLoadingMoreTopRated = false;
+      notifyListeners();
+    } catch (e) {
+      _topRatedPage--;
+      _isLoadingMoreTopRated = false;
+      notifyListeners();
+    }
+  }
+
+  // Fetch trending TV shows (reset to page 1)
+  Future<void> fetchTrendingTVShows() async {
+    _isLoadingTrending = true;
+    _trendingError = null;
+    _trendingPage = 1;
+    notifyListeners();
+
+    try {
+      _trendingTVShows = await _tmdbService.getTrendingTVShows(page: _trendingPage);
       _isLoadingTrending = false;
       notifyListeners();
     } catch (e) {
       _trendingError = e.toString();
       _isLoadingTrending = false;
+      notifyListeners();
+    }
+  }
+
+  // Load more trending TV shows
+  Future<void> loadMoreTrendingTVShows() async {
+    if (_isLoadingMoreTrending || _isLoadingTrending) return;
+
+    _isLoadingMoreTrending = true;
+    notifyListeners();
+
+    try {
+      _trendingPage++;
+      final moreShows = await _tmdbService.getTrendingTVShows(page: _trendingPage);
+      _trendingTVShows.addAll(moreShows);
+      _isLoadingMoreTrending = false;
+      notifyListeners();
+    } catch (e) {
+      _trendingPage--;
+      _isLoadingMoreTrending = false;
       notifyListeners();
     }
   }
@@ -116,19 +196,40 @@ class TvProvider extends ChangeNotifier {
     }
   }
 
-  // Fetch anime shows
+  // Fetch anime shows (reset to page 1)
   Future<void> fetchAnimeShows() async {
     _isLoadingAnime = true;
     _animeError = null;
+    _animePage = 1;
     notifyListeners();
 
     try {
-      _animeShows = await _tmdbService.getAnime();
+      _animeShows = await _tmdbService.getAnime(page: _animePage);
       _isLoadingAnime = false;
       notifyListeners();
     } catch (e) {
       _animeError = e.toString();
       _isLoadingAnime = false;
+      notifyListeners();
+    }
+  }
+
+  // Load more anime shows
+  Future<void> loadMoreAnimeShows() async {
+    if (_isLoadingMoreAnime || _isLoadingAnime) return;
+
+    _isLoadingMoreAnime = true;
+    notifyListeners();
+
+    try {
+      _animePage++;
+      final moreShows = await _tmdbService.getAnime(page: _animePage);
+      _animeShows.addAll(moreShows);
+      _isLoadingMoreAnime = false;
+      notifyListeners();
+    } catch (e) {
+      _animePage--;
+      _isLoadingMoreAnime = false;
       notifyListeners();
     }
   }
@@ -171,27 +272,22 @@ class TvProvider extends ChangeNotifier {
 
   // Helper: Find TV show in existing lists
   TVShow? _findInLists(int id) {
-    try {
-      return _popularTVShows.firstWhere((tv) => tv.id == id);
-    } catch (_) {
+    final allLists = [
+      _popularTVShows,
+      _topRatedTVShows,
+      _trendingTVShows,
+      _onTheAirTVShows,
+      _animeShows,
+    ];
+
+    for (var list in allLists) {
       try {
-        return _topRatedTVShows.firstWhere((tv) => tv.id == id);
+        return list.firstWhere((tv) => tv.id == id);
       } catch (_) {
-        try {
-          return _trendingTVShows.firstWhere((tv) => tv.id == id);
-        } catch (_) {
-          try {
-            return _onTheAirTVShows.firstWhere((tv) => tv.id == id);
-          } catch (_) {
-            try {
-              return _animeShows.firstWhere((tv) => tv.id == id);
-            } catch (_) {
-              return null;
-            }
-          }
-        }
+        continue;
       }
     }
+    return null;
   }
 
   // Clear cache (useful for memory management)

@@ -15,12 +15,24 @@ class MovieProvider extends ChangeNotifier {
   // Cache for movie details by ID
   final Map<int, Movie> _movieCache = {};
 
+  // Page tracking for pagination
+  int _popularPage = 1;
+  int _topRatedPage = 1;
+  int _trendingPage = 1;
+  int _nowPlayingPage = 1;
+  int _upcomingPage = 1;
+
   // Loading states
   bool _isLoadingPopular = false;
   bool _isLoadingTopRated = false;
   bool _isLoadingTrending = false;
   bool _isLoadingNowPlaying = false;
   bool _isLoadingUpcoming = false;
+
+  // Loading more states
+  bool _isLoadingMorePopular = false;
+  bool _isLoadingMoreTopRated = false;
+  bool _isLoadingMoreTrending = false;
 
   // Error states
   String? _popularError;
@@ -42,20 +54,25 @@ class MovieProvider extends ChangeNotifier {
   bool get isLoadingNowPlaying => _isLoadingNowPlaying;
   bool get isLoadingUpcoming => _isLoadingUpcoming;
 
+  bool get isLoadingMorePopular => _isLoadingMorePopular;
+  bool get isLoadingMoreTopRated => _isLoadingMoreTopRated;
+  bool get isLoadingMoreTrending => _isLoadingMoreTrending;
+
   String? get popularError => _popularError;
   String? get topRatedError => _topRatedError;
   String? get trendingError => _trendingError;
   String? get nowPlayingError => _nowPlayingError;
   String? get upcomingError => _upcomingError;
 
-  // Fetch popular movies
+  // Fetch popular movies (reset to page 1)
   Future<void> fetchPopularMovies() async {
     _isLoadingPopular = true;
     _popularError = null;
+    _popularPage = 1;
     notifyListeners();
 
     try {
-      _popularMovies = await _tmdbService.getPopularMovies();
+      _popularMovies = await _tmdbService.getPopularMovies(page: _popularPage);
       _isLoadingPopular = false;
       notifyListeners();
     } catch (e) {
@@ -65,14 +82,35 @@ class MovieProvider extends ChangeNotifier {
     }
   }
 
-  // Fetch top rated movies
-  Future<void> fetchTopRatedMovies() async {
-    _isLoadingTopRated = true;
-    _topRatedError = null;
+  // Load more popular movies (pagination)
+  Future<void> loadMorePopularMovies() async {
+    if (_isLoadingMorePopular || _isLoadingPopular) return;
+
+    _isLoadingMorePopular = true;
     notifyListeners();
 
     try {
-      _topRatedMovies = await _tmdbService.getTopRatedMovies();
+      _popularPage++;
+      final moreMovies = await _tmdbService.getPopularMovies(page: _popularPage);
+      _popularMovies.addAll(moreMovies);
+      _isLoadingMorePopular = false;
+      notifyListeners();
+    } catch (e) {
+      _popularPage--; // Rollback on error
+      _isLoadingMorePopular = false;
+      notifyListeners();
+    }
+  }
+
+  // Fetch top rated movies (reset to page 1)
+  Future<void> fetchTopRatedMovies() async {
+    _isLoadingTopRated = true;
+    _topRatedError = null;
+    _topRatedPage = 1;
+    notifyListeners();
+
+    try {
+      _topRatedMovies = await _tmdbService.getTopRatedMovies(page: _topRatedPage);
       _isLoadingTopRated = false;
       notifyListeners();
     } catch (e) {
@@ -82,19 +120,60 @@ class MovieProvider extends ChangeNotifier {
     }
   }
 
-  // Fetch trending movies
-  Future<void> fetchTrendingMovies() async {
-    _isLoadingTrending = true;
-    _trendingError = null;
+  // Load more top rated movies
+  Future<void> loadMoreTopRatedMovies() async {
+    if (_isLoadingMoreTopRated || _isLoadingTopRated) return;
+
+    _isLoadingMoreTopRated = true;
     notifyListeners();
 
     try {
-      _trendingMovies = await _tmdbService.getTrendingMovies();
+      _topRatedPage++;
+      final moreMovies = await _tmdbService.getTopRatedMovies(page: _topRatedPage);
+      _topRatedMovies.addAll(moreMovies);
+      _isLoadingMoreTopRated = false;
+      notifyListeners();
+    } catch (e) {
+      _topRatedPage--;
+      _isLoadingMoreTopRated = false;
+      notifyListeners();
+    }
+  }
+
+  // Fetch trending movies (reset to page 1)
+  Future<void> fetchTrendingMovies() async {
+    _isLoadingTrending = true;
+    _trendingError = null;
+    _trendingPage = 1;
+    notifyListeners();
+
+    try {
+      _trendingMovies = await _tmdbService.getTrendingMovies(page: _trendingPage);
       _isLoadingTrending = false;
       notifyListeners();
     } catch (e) {
       _trendingError = e.toString();
       _isLoadingTrending = false;
+      notifyListeners();
+    }
+  }
+
+  // Load more trending movies
+  Future<void> loadMoreTrendingMovies() async {
+    if (_isLoadingMoreTrending || _isLoadingTrending) return;
+
+    _isLoadingMoreTrending = true;
+    notifyListeners();
+
+    try {
+      _trendingPage++;
+      final moreMovies = await _tmdbService.getTrendingMovies(page: _trendingPage);
+      _trendingMovies.addAll(moreMovies);
+      _isLoadingMoreTrending = false;
+      notifyListeners();
+    } catch (e) {
+      _trendingPage--;
+      _isLoadingMoreTrending = false;
       notifyListeners();
     }
   }
@@ -170,27 +249,22 @@ class MovieProvider extends ChangeNotifier {
 
   // Helper: Find movie in existing lists
   Movie? _findInLists(int id) {
-    try {
-      return _popularMovies.firstWhere((m) => m.id == id);
-    } catch (_) {
+    final allLists = [
+      _popularMovies,
+      _topRatedMovies,
+      _trendingMovies,
+      _nowPlayingMovies,
+      _upcomingMovies,
+    ];
+
+    for (var list in allLists) {
       try {
-        return _topRatedMovies.firstWhere((m) => m.id == id);
+        return list.firstWhere((m) => m.id == id);
       } catch (_) {
-        try {
-          return _trendingMovies.firstWhere((m) => m.id == id);
-        } catch (_) {
-          try {
-            return _nowPlayingMovies.firstWhere((m) => m.id == id);
-          } catch (_) {
-            try {
-              return _upcomingMovies.firstWhere((m) => m.id == id);
-            } catch (_) {
-              return null;
-            }
-          }
-        }
+        continue;
       }
     }
+    return null;
   }
 
   // Clear cache (useful for memory management)

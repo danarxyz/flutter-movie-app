@@ -86,6 +86,7 @@ class MediaList extends StatelessWidget {
     // Grid of items
     return GridView.builder(
       padding: const EdgeInsets.all(16),
+      cacheExtent: 500, // Pre-cache items 500 pixels outside viewport
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.7,

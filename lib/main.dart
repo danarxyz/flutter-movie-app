@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'config/api_config.dart';
 import 'providers/movie_provider.dart';
 import 'providers/tv_provider.dart';
 import 'providers/search_provider.dart';
@@ -12,7 +13,19 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Load environment variables
-  await dotenv.load(fileName: '.env');
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('Warning: .env file not found. Using dart-define values.');
+  }
+  
+  // Validate API configuration
+  if (!ApiConfig.isConfigured) {
+    debugPrint('⚠️ WARNING: TMDB API keys not configured!');
+    debugPrint('For development: Add keys to .env file');
+    debugPrint('For production: Build with --dart-define flags');
+    debugPrint('Example: flutter build appbundle --dart-define=TMDB_API_KEY=xxx --dart-define=TMDB_ACCESS_TOKEN=xxx');
+  }
   
   runApp(const MyApp());
 }

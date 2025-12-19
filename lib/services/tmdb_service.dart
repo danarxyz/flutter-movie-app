@@ -10,6 +10,12 @@ class TMDBService {
   factory TMDBService() => _instance;
   TMDBService._internal();
 
+  // Persistent HTTP client
+  final http.Client _client = http.Client();
+  
+  // Network timeout duration
+  static const Duration _timeout = Duration(seconds: 15);
+
   // ========== MOVIE ENDPOINTS ==========
 
   /// Get popular movies
@@ -48,7 +54,9 @@ class TMDBService {
   Future<Movie> getMovieDetails(int id) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/movie/$id');
     try {
-      final response = await http.get(url, headers: ApiConfig.headers);
+      final response = await _client
+          .get(url, headers: ApiConfig.headers)
+          .timeout(_timeout);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -101,7 +109,9 @@ class TMDBService {
   Future<TVShow> getTVShowDetails(int id) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/tv/$id');
     try {
-      final response = await http.get(url, headers: ApiConfig.headers);
+      final response = await _client
+          .get(url, headers: ApiConfig.headers)
+          .timeout(_timeout);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -148,7 +158,9 @@ class TMDBService {
     );
 
     try {
-      final response = await http.get(url, headers: ApiConfig.headers);
+      final response = await _client
+          .get(url, headers: ApiConfig.headers)
+          .timeout(_timeout);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -180,7 +192,9 @@ class TMDBService {
   /// Fetch movies from API
   Future<List<Movie>> _fetchMovies(Uri url) async {
     try {
-      final response = await http.get(url, headers: ApiConfig.headers);
+      final response = await _client
+          .get(url, headers: ApiConfig.headers)
+          .timeout(_timeout);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -197,7 +211,9 @@ class TMDBService {
   /// Fetch TV shows from API
   Future<List<TVShow>> _fetchTVShows(Uri url) async {
     try {
-      final response = await http.get(url, headers: ApiConfig.headers);
+      final response = await _client
+          .get(url, headers: ApiConfig.headers)
+          .timeout(_timeout);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -209,5 +225,9 @@ class TMDBService {
     } catch (e) {
       throw Exception('Error fetching TV shows: $e');
     }
+  }
+  
+  void dispose() {
+    _client.close();
   }
 }

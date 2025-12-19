@@ -10,6 +10,7 @@ class FavoritesProvider extends ChangeNotifier {
 
   List<MediaItem> _favorites = [];
   bool _isLoading = false;
+  SharedPreferences? _prefs;
 
   List<MediaItem> get favorites => _favorites;
   List<Movie> get favoriteMovies =>
@@ -25,7 +26,8 @@ class FavoritesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final prefs = await SharedPreferences.getInstance();
+      _prefs ??= await SharedPreferences.getInstance();
+      final prefs = _prefs!;
       final favoritesJson = prefs.getStringList(_favoritesKey) ?? [];
 
       _favorites = favoritesJson.map((jsonStr) {
@@ -53,10 +55,10 @@ class FavoritesProvider extends ChangeNotifier {
   // Save favorites to SharedPreferences
   Future<void> _saveFavorites() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      _prefs ??= await SharedPreferences.getInstance();
       final favoritesJson =
           _favorites.map((item) => jsonEncode(item.toJson())).toList();
-      await prefs.setStringList(_favoritesKey, favoritesJson);
+      await _prefs!.setStringList(_favoritesKey, favoritesJson);
     } catch (e) {
       debugPrint('Error saving favorites: $e');
     }

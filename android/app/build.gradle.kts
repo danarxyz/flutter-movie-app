@@ -34,6 +34,16 @@ android {
 
     buildTypes {
         release {
+            // Enable code shrinking, obfuscation, and optimization
+            isMinifyEnabled = true
+            isShrinkResources = true
+            
+            // ProGuard/R8 configuration files
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            
             // Signing config will be set by signing.gradle if it exists
             // Otherwise defaults to debug
             if (!keystorePropertiesFile.exists()) {

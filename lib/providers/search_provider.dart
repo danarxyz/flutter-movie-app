@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/movie.dart';
 import '../models/tv_show.dart';
@@ -19,6 +20,9 @@ class SearchProvider extends ChangeNotifier {
   // Error state
   String? _error;
 
+  // Debounce timer
+  Timer? _debounce;
+
   // Getters
   List<Movie> get movieResults => _movieResults;
   List<TVShow> get tvShowResults => _tvShowResults;
@@ -28,18 +32,30 @@ class SearchProvider extends ChangeNotifier {
   bool get hasResults => _movieResults.isNotEmpty || _tvShowResults.isNotEmpty;
   int get totalResults => _movieResults.length + _tvShowResults.length;
 
-  // Search for both movies and TV shows
-  Future<void> searchMulti(String query) async {
+  // Search for both movies and TV shows with debouncing
+  void searchMulti(String query) {
+    // Cancel previous timer if exists
+    _debounce?.cancel();
+
     if (query.trim().isEmpty) {
       clearSearch();
       return;
     }
 
+    // Set loading state immediately for UX feedback
     _searchQuery = query;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
+    // Start new debounce timer
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _performSearchMulti(query);
+    });
+  }
+
+  // Actual search execution (private)
+  Future<void> _performSearchMulti(String query) async {
     try {
       final results = await _tmdbService.searchMulti(query);
       _movieResults = results['movies'] as List<Movie>;
@@ -53,8 +69,10 @@ class SearchProvider extends ChangeNotifier {
     }
   }
 
-  // Search only movies
-  Future<void> searchMovies(String query) async {
+  // Search only movies with debouncing
+  void searchMovies(String query) {
+    _debounce?.cancel();
+
     if (query.trim().isEmpty) {
       _movieResults = [];
       notifyListeners();
@@ -66,6 +84,12 @@ class SearchProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _performSearchMovies(query);
+    });
+  }
+
+  Future<void> _performSearchMovies(String query) async {
     try {
       _movieResults = await _tmdbService.searchMovies(query);
       _isLoading = false;
@@ -77,8 +101,10 @@ class SearchProvider extends ChangeNotifier {
     }
   }
 
-  // Search only TV shows
-  Future<void> searchTVShows(String query) async {
+  // Search only TV shows with debouncing
+  void searchTVShows(String query) {
+    _debounce?.cancel();
+
     if (query.trim().isEmpty) {
       _tvShowResults = [];
       notifyListeners();
@@ -90,6 +116,12 @@ class SearchProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _performSearchTVShows(query);
+    });
+  }
+
+  Future<void> _performSearchTVShows(String query) async {
     try {
       _tvShowResults = await _tmdbService.searchTVShows(query);
       _isLoading = false;
@@ -103,11 +135,18 @@ class SearchProvider extends ChangeNotifier {
 
   // Clear search results
   void clearSearch() {
+    _debounce?.cancel();
     _movieResults = [];
     _tvShowResults = [];
     _searchQuery = '';
     _error = null;
     _isLoading = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 }

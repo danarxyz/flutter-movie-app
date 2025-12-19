@@ -25,7 +25,19 @@ class DatabaseHelper {
       path,
       version: 1,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // Handle database schema migrations here
+    // Example for future versions:
+    // if (oldVersion < 2) {
+    //   await db.execute('ALTER TABLE users ADD COLUMN new_field TEXT');
+    // }
+    // if (oldVersion < 3) {
+    //   await db.execute('CREATE TABLE new_table (...)');
+    // }
   }
 
   Future<void> _onCreate(Database db, int version) async {

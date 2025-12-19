@@ -1,9 +1,32 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiConfig {
-  // TMDB API Configuration - loaded from environment variables
-  static String get apiKey => dotenv.env['TMDB_API_KEY'] ?? '';
-  static String get accessToken => dotenv.env['TMDB_ACCESS_TOKEN'] ?? '';
+  // TMDB API Configuration
+  // Priority: --dart-define > .env > empty string
+  // Production: Use --dart-define when building AAB
+  // Development: Use .env file
+  
+  static String get apiKey {
+    // Try --dart-define first (for production builds)
+    const dartDefineKey = String.fromEnvironment('TMDB_API_KEY');
+    if (dartDefineKey.isNotEmpty) return dartDefineKey;
+    
+    // Fallback to .env (for development)
+    return dotenv.env['TMDB_API_KEY'] ?? '';
+  }
+  
+  static String get accessToken {
+    // Try --dart-define first (for production builds)
+    const dartDefineToken = String.fromEnvironment('TMDB_ACCESS_TOKEN');
+    if (dartDefineToken.isNotEmpty) return dartDefineToken;
+    
+    // Fallback to .env (for development)
+    return dotenv.env['TMDB_ACCESS_TOKEN'] ?? '';
+  }
+
+  // Validation: Check if API keys are configured
+  static bool get isConfigured => 
+    apiKey.isNotEmpty && accessToken.isNotEmpty;
 
   // Base URLs
   static const String baseUrl = 'https://api.themoviedb.org/3';
