@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"watchly-movie","appId":"1:171602015562:android:0b44228ee1b3d355ba7db3","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"watchly-movie","configurations":{"android":"1:171602015562:android:0b44228ee1b3d355ba7db3","web":"1:171602015562:web:64a3f890ff0cc80bba7db3"}}}}}}

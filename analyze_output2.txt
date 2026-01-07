@@ -1,0 +1,16 @@
+﻿Analyzing lib...                                                
+
+warning - Unused import: '../../../domain/entities/movie.dart' - lib\data\datasources\remote\movie_remote_data_source.dart:4:8 - unused_import
+warning - Dead code - lib\presentation\screens\details\movie_detail_screen.dart:81:82 - dead_code
+warning - The left operand can't be null, so the right operand is never executed - lib\presentation\screens\details\movie_detail_screen.dart:81:85 - dead_null_aware_expression
+
+flutter : 3 issues found. (ran in 8.8s)
+At line:1 char:1
++ flutter analyze lib/ 2>&1 | Out-File -FilePath 
+analyze_output2.txt -E ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (3 iss 
+   ues found. (ran in 8.8s):String) [], RemoteExc  
+  eption
+    + FullyQualifiedErrorId : NativeCommandError
+ 

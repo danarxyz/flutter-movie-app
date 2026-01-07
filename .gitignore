@@ -46,3 +46,7 @@ app.*.map.json
 
 # Environment variables - contains sensitive API keys
 .env
+
+# Documentation & Design
+prd/
+stitch-design/

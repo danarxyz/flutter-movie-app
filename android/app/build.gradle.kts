@@ -1,5 +1,8 @@
 plugins {
     id("com.android.application")
+    // START: FlutterFire Configuration
+    id("com.google.gms.google-services")
+    // END: FlutterFire Configuration
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -27,22 +30,22 @@ android {
     defaultConfig {
         applicationId = "com.danar.watchlyapp"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35  // Updated to Android 15 (Vanilla Ice Cream) per user request
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
     buildTypes {
         release {
-            // Enable code shrinking, obfuscation, and optimization
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Temporarily disable minification to troubleshoot
+            isMinifyEnabled = false
+            isShrinkResources = false
             
-            // ProGuard/R8 configuration files
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            // ProGuard/R8 configuration files (disabled for now)
+            // proguardFiles(
+            //     getDefaultProguardFile("proguard-android-optimize.txt"),
+            //     "proguard-rules.pro"
+            // )
             
             // Signing config will be set by signing.gradle if it exists
             // Otherwise defaults to debug

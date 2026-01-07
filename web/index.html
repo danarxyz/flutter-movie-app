@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Watchly - Your Cinema Companion">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Watchly">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <title>Watchly</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+  <!-- Firebase SDK v12.7.0 (Compat for Flutter Web) -->
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics-compat.js"></script>
+
+  <script>
+    // Firebase configuration - must match firebase_options.dart
+    const firebaseConfig = {
+      apiKey: "AIzaSyA1ApIvjDHji2Qv01oDmEddVIXkSt7pPNI",
+      authDomain: "watchly-movie.firebaseapp.com",
+      databaseURL: "https://watchly-movie-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "watchly-movie",
+      storageBucket: "watchly-movie.firebasestorage.app",
+      messagingSenderId: "171602015562",
+      appId: "1:171602015562:web:64a3f890ff0cc80bba7db3",
+      measurementId: "G-N35MQKTV0M"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+  </script>
+
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+
+</html>

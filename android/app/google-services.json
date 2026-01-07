@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "171602015562",
+    "project_id": "watchly-movie",
+    "storage_bucket": "watchly-movie.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:171602015562:android:0b44228ee1b3d355ba7db3",
+        "android_client_info": {
+          "package_name": "com.danar.watchlyapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9p_76Teq6EhOrjx1qDbKmEbr8HM2XK3I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,104 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:provider/provider.dart';
-import 'config/api_config.dart';
-import 'providers/movie_provider.dart';
-import 'providers/tv_provider.dart';
-import 'providers/search_provider.dart';
-import 'providers/favorites_provider.dart';
-import 'providers/auth_provider.dart';
-import 'screens/auth/login_screen.dart';
+import 'core/di/injection_container.dart' as di;
+import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
+import 'firebase_options.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Load environment variables
+  await dotenv.load(fileName: ".env");
+
+  // Initialize Firebase
   try {
-    await dotenv.load(fileName: '.env');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
-    debugPrint('Warning: .env file not found. Using dart-define values.');
+    debugPrint("CRITICAL: Firebase initialization failed. Error: $e");
+    // On web, this might happen if hot restarting.
+    if (Firebase.apps.isNotEmpty) {
+       debugPrint("Firebase app already exists, continuing.");
+    } else {
+       rethrow;
+    }
   }
-  
-  // Validate API configuration
-  if (!ApiConfig.isConfigured) {
-    debugPrint('⚠️ WARNING: TMDB API keys not configured!');
-    debugPrint('For development: Add keys to .env file');
-    debugPrint('For production: Build with --dart-define flags');
-    debugPrint('Example: flutter build appbundle --dart-define=TMDB_API_KEY=xxx --dart-define=TMDB_ACCESS_TOKEN=xxx');
-  }
-  
-  runApp(const MyApp());
+
+  // Initialize Dependency Injection
+  await di.init();
+
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => MovieProvider()),
-        ChangeNotifierProvider(create: (_) => TvProvider()),
-        ChangeNotifierProvider(create: (_) => SearchProvider()),
-        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
-      ],
-      child: MaterialApp(
-        title: 'Movie Recommendation',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF0097A7), // Vibrant Teal/Cyan
-            brightness: Brightness.light,
-            primary: const Color(0xFF00838F),
-            secondary: const Color(0xFFFF6F00), // Orange accent
-            tertiary: const Color(0xFF7B1FA2), // Purple tertiary
-            surface: const Color(0xFFFAFAFA),
-          ),
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 2,
-            shadowColor: Colors.black26,
-          ),
-          cardTheme: CardThemeData(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          floatingActionButtonTheme: const FloatingActionButtonThemeData(
-            elevation: 4,
-          ),
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF00BCD4), // Bright Cyan for dark
-            brightness: Brightness.dark,
-            primary: const Color(0xFF00ACC1),
-            secondary: const Color(0xFFFFB300), // Amber accent
-            tertiary: const Color(0xFFAB47BC), // Lighter purple
-            surface: const Color(0xFF1E1E1E),
-          ),
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 2,
-            shadowColor: Colors.black45,
-          ),
-          cardTheme: CardThemeData(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          floatingActionButtonTheme: const FloatingActionButtonThemeData(
-            elevation: 4,
-          ),
-        ),
-        themeMode: ThemeMode.system,
-        home: const LoginScreen(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
       ),
+    );
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      title: 'Watchly',
+      theme: AppTheme.darkTheme, // Use the custom theme
+      routerConfig: router,
     );
   }
 }

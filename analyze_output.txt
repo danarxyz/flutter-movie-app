@@ -1,0 +1,54 @@
+﻿Analyzing lib...                                                
+
+   info - The imported package 'firebase_database' isn't a dependency of the importing package - lib\core\di\injection_container.dart:5:8 - depend_on_referenced_packages
+  error - Target of URI doesn't exist: 'package:firebase_database/firebase_database.dart' - lib\core\di\injection_container.dart:5:8 - uri_does_not_exist
+  error - Undefined name 'FirebaseDatabase' - lib\core\di\injection_container.dart:22:34 - undefined_identifier
+  error - Target of URI doesn't exist: '../models/user_model.dart' - lib\data\datasources\firebase\auth_data_source.dart:2:8 - uri_does_not_exist
+  error - The name 'UserModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\firebase\auth_data_source.dart:5:10 - non_type_as_type_argument
+  error - The name 'UserModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\firebase\auth_data_source.dart:6:10 - non_type_as_type_argument
+  error - The name 'UserModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\firebase\auth_data_source.dart:8:10 - non_type_as_type_argument
+  error - The name 'UserModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\firebase\auth_data_source.dart:17:10 - non_type_as_type_argument
+  error - The method 'UserModel' isn't defined for the type 'AuthDataSourceImpl' - lib\data\datasources\firebase\auth_data_source.dart:22:14 - undefined_method
+  error - The name 'UserModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\firebase\auth_data_source.dart:34:10 - non_type_as_type_argument
+  error - The method 'UserModel' isn't defined for the type 'AuthDataSourceImpl' - lib\data\datasources\firebase\auth_data_source.dart:40:14 - undefined_method
+  error - The name 'UserModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\firebase\auth_data_source.dart:57:10 - non_type_as_type_argument
+  error - The method 'UserModel' isn't defined for the type 'AuthDataSourceImpl' - lib\data\datasources\firebase\auth_data_source.dart:60:14 - undefined_method
+  error - Target of URI doesn't exist: '../../core/constants/app_constants.dart' - lib\data\datasources\remote\movie_remote_data_source.dart:2:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../models/movie_model.dart' - lib\data\datasources\remote\movie_remote_data_source.dart:3:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../domain/entities/movie.dart' - lib\data\datasources\remote\movie_remote_data_source.dart:4:8 - uri_does_not_exist
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:7:15 - non_type_as_type_argument
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:8:15 - non_type_as_type_argument
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:9:15 - non_type_as_type_argument
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:10:15 - non_type_as_type_argument
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:11:10 - non_type_as_type_argument
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:24:15 - non_type_as_type_argument
+  error - Undefined name 'AppConstants' - lib\data\datasources\remote\movie_remote_data_source.dart:26:10 - undefined_identifier
+  error - Undefined name 'MovieModel' - lib\data\datasources\remote\movie_remote_data_source.dart:31:33 - undefined_identifier
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:38:15 - non_type_as_type_argument
+  error - Undefined name 'AppConstants' - lib\data\datasources\remote\movie_remote_data_source.dart:40:10 - undefined_identifier
+  error - Undefined name 'MovieModel' - lib\data\datasources\remote\movie_remote_data_source.dart:45:33 - undefined_identifier
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:52:15 - non_type_as_type_argument
+  error - Undefined name 'AppConstants' - lib\data\datasources\remote\movie_remote_data_source.dart:54:10 - undefined_identifier
+  error - Undefined name 'MovieModel' - lib\data\datasources\remote\movie_remote_data_source.dart:59:33 - undefined_identifier
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:66:15 - non_type_as_type_argument
+  error - Undefined name 'AppConstants' - lib\data\datasources\remote\movie_remote_data_source.dart:68:10 - undefined_identifier
+  error - Undefined name 'MovieModel' - lib\data\datasources\remote\movie_remote_data_source.dart:73:33 - undefined_identifier
+  error - The name 'MovieModel' isn't a type, so it can't be used as a type argument - lib\data\datasources\remote\movie_remote_data_source.dart:80:10 - non_type_as_type_argument
+  error - Undefined name 'AppConstants' - lib\data\datasources\remote\movie_remote_data_source.dart:82:10 - undefined_identifier
+  error - Undefined name 'MovieModel' - lib\data\datasources\remote\movie_remote_data_source.dart:86:14 - undefined_identifier
+   info - The imported package 'firebase_database' isn't a dependency of the importing package - lib\data\repositories\movie_repository_impl.dart:1:8 - depend_on_referenced_packages
+  error - Target of URI doesn't exist: 'package:firebase_database/firebase_database.dart' - lib\data\repositories\movie_repository_impl.dart:1:8 - uri_does_not_exist
+  error - Undefined class 'FirebaseDatabase' - lib\data\repositories\movie_repository_impl.dart:10:9 - undefined_class
+warning - Dead code - lib\presentation\screens\details\movie_detail_screen.dart:81:82 - dead_code
+warning - The left operand can't be null, so the right operand is never executed - lib\presentation\screens\details\movie_detail_screen.dart:81:85 - dead_null_aware_expression
+
+flutter : 41 issues found. (ran in 4.0s)
+At line:1 char:1
++ flutter analyze lib/ 2>&1 | Out-File -FilePath 
+analyze_output.txt -En ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (41 
+issues fo    und. (ran in 4.0s):String) [], 
+RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
