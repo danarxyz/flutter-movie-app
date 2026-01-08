@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/screen_utils.dart';
+import '../../../core/utils/responsive_extensions.dart';
 import '../../../domain/entities/movie.dart';
 import '../../providers/movie_provider.dart';
+import '../../widgets/error_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -222,6 +223,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: FilterChip(
               label: Text(_filters[index]),
               selected: isSelected,
+              showCheckmark: false, // Prevents size change
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               onSelected: (selected) {
                 setState(() => _selectedFilter = index);
                 _loadDataForFilter(index);
@@ -232,6 +235,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: isSelected ? Colors.white : AppTheme.textSecondary,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -279,9 +283,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
     
     if (state is MovieError) {
+      if (isNetworkError(state.message)) {
+        return SizedBox(
+          height: 280,
+          child: ErrorScreen.noInternet(
+            onRetry: () => _loadDataForFilter(_selectedFilter),
+            isFullScreen: false,
+          ),
+        );
+      }
       return SizedBox(
         height: 280,
-        child: Center(child: Text(state.message, style: TextStyle(color: AppTheme.textSecondary))),
+        child: ErrorScreen.generalError(
+          message: state.message,
+          onRetry: () => _loadDataForFilter(_selectedFilter),
+          isFullScreen: false,
+        ),
       );
     }
     
@@ -291,9 +308,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: LayoutBuilder( // Use LayoutBuilder to access constraints if needed, or ScreenUtils
           builder: (context, constraints) {
             double viewportFraction = 0.85;
-            if (ScreenUtils.isDesktop(context)) {
+            if (context.isDesktop) {
               viewportFraction = 0.25; // Show ~4 items
-            } else if (ScreenUtils.isTablet(context)) {
+            } else if (context.isTablet) {
               viewportFraction = 0.45; // Show ~2 items
             }
 
@@ -411,9 +428,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
     
     if (state is MovieError) {
+      if (isNetworkError(state.message)) {
+        return SizedBox(
+          height: 180,
+          child: ErrorScreen.noInternet(
+            onRetry: () => _loadDataForFilter(_selectedFilter),
+            isFullScreen: false,
+          ),
+        );
+      }
       return SizedBox(
         height: 180,
-        child: Center(child: Text(state.message, style: TextStyle(color: AppTheme.textSecondary))),
+        child: ErrorScreen.generalError(
+          message: state.message,
+          onRetry: () => _loadDataForFilter(_selectedFilter),
+          isFullScreen: false,
+        ),
       );
     }
     
@@ -511,34 +541,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  SliverGrid _buildForYouGrid(MovieState state) {
+  SliverPadding _buildForYouGrid(MovieState state) {
     if (state is MovieLoaded) {
-      return SliverGrid(
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 200,
-          childAspectRatio: 0.65,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index >= state.movies.length) return null;
-            final movie = state.movies[index];
-            return _buildGridCard(movie);
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        sliver: SliverLayoutBuilder(
+          builder: (context, constraints) {
+            return SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: context.gridColumns,
+                childAspectRatio: context.gridAspectRatio,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (index >= state.movies.length) return null;
+                  final movie = state.movies[index];
+                  return _buildGridCard(movie);
+                },
+                childCount: state.movies.take(context.gridColumns * 2).length,
+              ),
+            );
           },
-          childCount: state.movies.take(6).length,
         ),
       );
     }
     
-    return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
-        childAspectRatio: 0.65,
-      ),
-      delegate: SliverChildBuilderDelegate(
-        (context, index) => const SizedBox(),
-        childCount: 0,
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.65,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => const SizedBox(),
+          childCount: 0,
+        ),
       ),
     );
   }

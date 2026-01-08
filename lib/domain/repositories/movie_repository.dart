@@ -26,18 +26,5 @@ abstract class MovieRepository {
 
   /// Get Anime (Animation TV Shows)
   Future<List<Movie>> getAnime();
-
-  // --- User Data (Firebase) ---
-
-  /// Add movie to user's watchlist
-  Future<void> addToWatchlist(Movie movie);
-
-  /// Remove movie from watchlist
-  Future<void> removeFromWatchlist(int movieId);
-
-  /// Check if a movie is in watchlist (for UI icon state)
-  Future<bool> isAddedToWatchlist(int movieId);
-
-  /// Get all watchlist movies
-  Future<List<Movie>> getWatchlist();
 }
+

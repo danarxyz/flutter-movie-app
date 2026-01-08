@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/movie.dart';
 import '../../providers/movie_provider.dart';
+import '../../widgets/error_screen.dart';
 
 // Search Provider
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -118,6 +119,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     child: FilterChip(
                       label: Text(_filters[index]),
                       selected: isSelected,
+                      showCheckmark: false, // Prevents size change
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       onSelected: (selected) {
                         setState(() => _selectedFilter = index);
                       },
@@ -127,6 +130,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         color: isSelected ? Colors.white : AppTheme.textSecondary,
                         fontSize: 12,
                       ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -273,9 +277,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
-      error: (error, stack) => Center(
-        child: Text('Error: $error', style: TextStyle(color: AppTheme.textSecondary)),
-      ),
+      error: (error, stack) {
+        if (isNetworkError(error)) {
+          return ErrorScreen.noInternet(
+            onRetry: () => ref.invalidate(searchResultsProvider),
+          );
+        }
+        return ErrorScreen.generalError(
+          message: error.toString(),
+          onRetry: () => ref.invalidate(searchResultsProvider),
+        );
+      },
     );
   }
 

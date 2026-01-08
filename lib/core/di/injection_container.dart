@@ -6,10 +6,15 @@ import 'package:firebase_database/firebase_database.dart';
 
 import '../../domain/repositories/movie_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/repositories/watchlist_repository.dart';
+import '../../domain/repositories/user_management_repository.dart';
 import '../../data/repositories/movie_repository_impl.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/repositories/watchlist_repository_impl.dart';
+import '../../data/repositories/user_management_repository_impl.dart';
 import '../../data/datasources/remote/movie_remote_data_source.dart';
 import '../../data/datasources/firebase/auth_data_source.dart';
+import '../../data/datasources/firebase/user_management_data_source.dart';
 
 final sl = GetIt.instance;
 
@@ -28,19 +33,31 @@ Future<void> init() async {
   sl.registerLazySingleton<AuthDataSource>(
     () => AuthDataSourceImpl(firebaseAuth: sl()),
   );
+  sl.registerLazySingleton<UserManagementDataSource>(
+    () => UserManagementDataSourceImpl(firebaseDatabase: sl()),
+  );
 
   //! Repositories
   sl.registerLazySingleton<MovieRepository>(
     () => MovieRepositoryImpl(
       remoteDataSource: sl(),
-      firebaseDatabase: sl(),
-      firebaseAuth: sl(),
     ),
   );
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(remoteDataSource: sl()),
   );
+  sl.registerLazySingleton<WatchlistRepository>(
+    () => WatchlistRepositoryImpl(
+      firebaseDatabase: sl(),
+      firebaseAuth: sl(),
+    ),
+  );
+  sl.registerLazySingleton<UserManagementRepository>(
+    () => UserManagementRepositoryImpl(dataSource: sl()),
+  );
 
   //! Features - Authentication & Movies
   // ViewModels/Providers will be registered here later when Presentation layer is built
 }
+
+

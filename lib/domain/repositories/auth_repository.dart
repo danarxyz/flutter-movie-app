@@ -15,4 +15,14 @@ abstract class AuthRepository {
   
   /// Reset password flow
   Future<void> resetPassword(String email);
+
+  /// Update user profile (display name, photo)
+  Future<void> updateProfile({String? displayName, String? photoUrl});
+
+  /// Change password
+  Future<void> updatePassword(String currentPassword, String newPassword);
+
+  /// Delete account
+  Future<void> deleteAccount(String password);
 }
+

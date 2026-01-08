@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/movie.dart';
 import '../../providers/movie_provider.dart';
+import '../../widgets/error_screen.dart';
 
 class WatchlistScreen extends ConsumerStatefulWidget {
   const WatchlistScreen({super.key});
@@ -15,13 +16,14 @@ class WatchlistScreen extends ConsumerStatefulWidget {
 
 class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
   Movie? _lastRemovedMovie;
-  int? _lastRemovedIndex;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(watchlistProvider.notifier).loadWatchlist();
+    // Trigger refresh of watchlist stream on screen load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // The stream provider auto-refreshes, but we ensure the provider is active
+      ref.invalidate(watchlistStreamProvider);
     });
   }
 
@@ -38,16 +40,26 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
           'Watchlist',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontSize: 20, // Consistent with other screens
+            fontWeight: FontWeight.w600,
           ),
         ),
+        centerTitle: true,
       ),
       body: watchlistState.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
-        error: (error, stack) => Center(
-          child: Text('Error: $error', style: TextStyle(color: AppTheme.textSecondary)),
-        ),
+        error: (error, stack) {
+          // Use ErrorScreen for better UX
+          if (isNetworkError(error)) {
+            return ErrorScreen.noInternet(
+              onRetry: () => ref.invalidate(watchlistStreamProvider),
+            );
+          }
+          return ErrorScreen.generalError(
+            message: error.toString(),
+            onRetry: () => ref.invalidate(watchlistStreamProvider),
+          );
+        },
         data: (movies) {
           if (movies.isEmpty) return _buildEmptyState();
           
@@ -63,6 +75,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
       ),
     );
   }
+
 
   Widget _buildEmptyState() {
     return Center(
@@ -107,8 +120,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
       ),
       onDismissed: (direction) {
         _lastRemovedMovie = movie;
-        _lastRemovedIndex = index; // Note: Index might vary if list changes, but ok for simple undo
-        ref.read(watchlistProvider.notifier).removeFromWatchlist(movie.id);
+        ref.read(watchlistActionsProvider.notifier).removeFromWatchlist(movie.id);
         
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,7 +131,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
               textColor: AppTheme.primary,
               onPressed: () {
                 if (_lastRemovedMovie != null) {
-                  ref.read(watchlistProvider.notifier).addToWatchlist(_lastRemovedMovie!);
+                  ref.read(watchlistActionsProvider.notifier).addToWatchlist(_lastRemovedMovie!);
                 }
               },
             ),

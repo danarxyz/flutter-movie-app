@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/movie.dart';
 import '../../providers/movie_provider.dart';
-import '../watchlist/watchlist_screen.dart';
+import '../../widgets/error_screen.dart';
 
 import 'package:equatable/equatable.dart';
 
@@ -42,13 +42,6 @@ class MovieDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _MovieDetailScreenState extends ConsumerState<MovieDetailScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      ref.read(watchlistProvider.notifier).loadWatchlist();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,12 +54,31 @@ class _MovieDetailScreenState extends ConsumerState<MovieDetailScreen> {
       body: movieAsync.when(
         data: (movie) {
           if (movie == null) {
-            return const Center(child: Text('Movie not found', style: TextStyle(color: Colors.white)));
+            return ErrorScreen.generalError(
+              message: 'Movie not found',
+              onRetry: () => ref.invalidate(movieDetailProvider(
+                MovieDetailParams(widget.movieId, widget.mediaType),
+              )),
+            );
           }
           return _buildContent(context, ref, movie);
         },
         loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
-        error: (error, stack) => Center(child: Text('Error: $error', style: TextStyle(color: AppTheme.textSecondary))),
+        error: (error, stack) {
+          if (isNetworkError(error)) {
+            return ErrorScreen.noInternet(
+              onRetry: () => ref.invalidate(movieDetailProvider(
+                MovieDetailParams(widget.movieId, widget.mediaType),
+              )),
+            );
+          }
+          return ErrorScreen.generalError(
+            message: error.toString(),
+            onRetry: () => ref.invalidate(movieDetailProvider(
+              MovieDetailParams(widget.movieId, widget.mediaType),
+            )),
+          );
+        },
       ),
     );
   }
@@ -256,7 +268,7 @@ class _MovieDetailScreenState extends ConsumerState<MovieDetailScreen> {
                           return ElevatedButton.icon(
                             onPressed: () {
                               if (isInWatchlist) {
-                                ref.read(watchlistProvider.notifier).removeFromWatchlist(movie.id);
+                                ref.read(watchlistActionsProvider.notifier).removeFromWatchlist(movie.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('Removed from watchlist'),
@@ -264,11 +276,18 @@ class _MovieDetailScreenState extends ConsumerState<MovieDetailScreen> {
                                   ),
                                 );
                               } else {
-                                ref.read(watchlistProvider.notifier).addToWatchlist(movie);
+                                ref.read(watchlistActionsProvider.notifier).addToWatchlist(movie);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Added to watchlist'),
-                                    backgroundColor: AppTheme.surfaceContainer,
+                                    content: const Text('Added to watchlist'),
+                                    action: SnackBarAction(
+                                      label: 'VIEW',
+                                      textColor: AppTheme.primary,
+                                      onPressed: () {
+                                        // Navigate to watchlist tab (index 2)
+                                        context.go('/?tab=2');
+                                      },
+                                    ),
                                   ),
                                 );
                               }

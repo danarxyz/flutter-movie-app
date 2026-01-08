@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/di/injection_container.dart';
 import '../../domain/entities/movie.dart';
 import '../../domain/repositories/movie_repository.dart';
+import '../../domain/repositories/watchlist_repository.dart';
 
 // --- State Classes ---
 abstract class MovieState {}
@@ -110,9 +111,13 @@ class TrendingTVNotifier extends StateNotifier<MovieState> {
   }
 }
 
-// --- Providers ---
+// --- Repository Providers ---
 
 final movieRepositoryProvider = Provider<MovieRepository>((ref) => sl<MovieRepository>());
+
+final watchlistRepositoryProvider = Provider<WatchlistRepository>((ref) => sl<WatchlistRepository>());
+
+// --- Movie Providers ---
 
 final trendingMoviesProvider = StateNotifierProvider<TrendingMoviesNotifier, MovieState>((ref) {
   return TrendingMoviesNotifier(ref.watch(movieRepositoryProvider));
@@ -138,48 +143,53 @@ final animeProvider = StateNotifierProvider<AnimeNotifier, MovieState>((ref) {
   return AnimeNotifier(ref.watch(movieRepositoryProvider));
 });
 
-// --- Watchlist Notifier ---
+// --- Watchlist Provider (Stream-based for real-time sync) ---
 
-class WatchlistNotifier extends StateNotifier<AsyncValue<List<Movie>>> {
-  final MovieRepository _repository;
-  WatchlistNotifier(this._repository) : super(const AsyncValue.loading());
+/// StreamProvider for real-time watchlist updates from Firebase RTDB.
+/// Automatically disposes when no longer listened to.
+final watchlistStreamProvider = StreamProvider.autoDispose<List<Movie>>((ref) {
+  final repository = ref.watch(watchlistRepositoryProvider);
+  return repository.getWatchlistStream();
+});
 
-  Future<void> loadWatchlist() async {
-    state = const AsyncValue.loading();
-    try {
-      final movies = await _repository.getWatchlist();
-      state = AsyncValue.data(movies);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
-  }
+/// Notifier for watchlist actions (add/remove).
+/// The actual list is managed by [watchlistStreamProvider].
+class WatchlistActionsNotifier extends StateNotifier<AsyncValue<void>> {
+  final WatchlistRepository _repository;
+  WatchlistActionsNotifier(this._repository) : super(const AsyncValue.data(null));
 
   Future<void> addToWatchlist(Movie movie) async {
+    state = const AsyncValue.loading();
     try {
       await _repository.addToWatchlist(movie);
-      // Optimistic update or reload
-      final currentList = state.value ?? [];
-      if (!currentList.any((m) => m.id == movie.id)) {
-        state = AsyncValue.data([...currentList, movie]);
-      }
+      state = const AsyncValue.data(null);
     } catch (e, st) {
-      // Handle error (maybe show toast via listener in UI)
       state = AsyncValue.error(e, st);
     }
   }
 
   Future<void> removeFromWatchlist(int movieId) async {
+    state = const AsyncValue.loading();
     try {
       await _repository.removeFromWatchlist(movieId);
-      // Optimistic update
-      final currentList = state.value ?? [];
-      state = AsyncValue.data(currentList.where((m) => m.id != movieId).toList());
+      state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<bool> isInWatchlist(int movieId) async {
+    return await _repository.isInWatchlist(movieId);
+  }
 }
 
-final watchlistProvider = StateNotifierProvider<WatchlistNotifier, AsyncValue<List<Movie>>>((ref) {
-  return WatchlistNotifier(ref.watch(movieRepositoryProvider));
+final watchlistActionsProvider = StateNotifierProvider<WatchlistActionsNotifier, AsyncValue<void>>((ref) {
+  return WatchlistActionsNotifier(ref.watch(watchlistRepositoryProvider));
 });
+
+/// Legacy provider for backward compatibility.
+/// Wraps the stream into AsyncValue for existing consumers.
+final watchlistProvider = Provider<AsyncValue<List<Movie>>>((ref) {
+  return ref.watch(watchlistStreamProvider);
+});
+

@@ -74,6 +74,54 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> updateProfile({String? displayName}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.updateProfile(displayName: displayName);
+      // Refresh user data
+      final updatedUser = await _repository.getCurrentUser();
+      state = AuthState(user: updatedUser, successMessage: 'Profile updated successfully!');
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> updatePassword(String currentPassword, String newPassword) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.updatePassword(currentPassword, newPassword);
+      state = state.copyWith(isLoading: false, successMessage: 'Password changed successfully!');
+      return true;
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (errorMessage.contains('wrong-password') || errorMessage.contains('invalid-credential')) {
+        errorMessage = 'Current password is incorrect';
+      } else if (errorMessage.contains('weak-password')) {
+        errorMessage = 'New password is too weak';
+      }
+      state = state.copyWith(isLoading: false, error: errorMessage);
+      return false;
+    }
+  }
+
+  Future<bool> deleteAccount(String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.deleteAccount(password);
+      state = const AuthState();
+      return true;
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (errorMessage.contains('wrong-password') || errorMessage.contains('invalid-credential')) {
+        errorMessage = 'Password is incorrect';
+      }
+      state = state.copyWith(isLoading: false, error: errorMessage);
+      return false;
+    }
+  }
+
   void clearMessages() {
     state = state.copyWith(error: null);
   }
@@ -85,3 +133,4 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) => sl<AuthReposito
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(ref.watch(authRepositoryProvider));
 });
+

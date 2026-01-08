@@ -6,6 +6,10 @@ abstract class AuthDataSource {
   Future<UserModel> signUpWithEmail(String email, String password, String name);
   Future<void> signOut();
   Future<UserModel?> getCurrentUser();
+  Future<void> updateProfile({String? displayName, String? photoUrl});
+  Future<void> updatePassword(String currentPassword, String newPassword);
+  Future<void> deleteAccount(String password);
+  Future<void> sendPasswordResetEmail(String email);
 }
 
 class AuthDataSourceImpl implements AuthDataSource {
@@ -66,4 +70,52 @@ class AuthDataSourceImpl implements AuthDataSource {
     }
     return null;
   }
+
+  @override
+  Future<void> updateProfile({String? displayName, String? photoUrl}) async {
+    final user = firebaseAuth.currentUser;
+    if (user == null) throw Exception('Not logged in');
+    
+    if (displayName != null) {
+      await user.updateDisplayName(displayName);
+    }
+    if (photoUrl != null) {
+      await user.updatePhotoURL(photoUrl);
+    }
+    await user.reload();
+  }
+
+  @override
+  Future<void> updatePassword(String currentPassword, String newPassword) async {
+    final user = firebaseAuth.currentUser;
+    if (user == null || user.email == null) throw Exception('Not logged in');
+    
+    // Re-authenticate first
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: currentPassword,
+    );
+    await user.reauthenticateWithCredential(credential);
+    await user.updatePassword(newPassword);
+  }
+
+  @override
+  Future<void> deleteAccount(String password) async {
+    final user = firebaseAuth.currentUser;
+    if (user == null || user.email == null) throw Exception('Not logged in');
+    
+    // Re-authenticate first
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: password,
+    );
+    await user.reauthenticateWithCredential(credential);
+    await user.delete();
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    await firebaseAuth.sendPasswordResetEmail(email: email);
+  }
 }
+

@@ -165,13 +165,19 @@ class AppTheme {
       // Navigation Bar (Material 3)
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: const Color(0xFF1A0D0E).withValues(alpha: 0.95),
-        indicatorColor: primary.withValues(alpha: 0.2),
+        indicatorColor: primary,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: Colors.white, size: 24);
+          }
+          return IconThemeData(color: textSecondary, size: 24);
+        }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: primary,
+              color: Colors.white,
             );
           }
           return TextStyle(
@@ -198,14 +204,16 @@ class AppTheme {
         ),
       ),
 
-      // Snackbar Theme
+      // Snackbar Theme - Enhanced visibility
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: surfaceContainer,
-        contentTextStyle: const TextStyle(color: textPrimary),
+        backgroundColor: const Color(0xFF2A1415), // Darker for contrast
+        contentTextStyle: const TextStyle(color: textPrimary, fontSize: 14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: primary.withValues(alpha: 0.5), width: 1),
         ),
         behavior: SnackBarBehavior.floating,
+        elevation: 8,
       ),
     );
   }

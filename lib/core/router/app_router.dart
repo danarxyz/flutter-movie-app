@@ -38,7 +38,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         name: 'home',
-        builder: (context, state) => const MainScreen(),
+        builder: (context, state) {
+          final tabParam = state.uri.queryParameters['tab'];
+          final initialTab = int.tryParse(tabParam ?? '0') ?? 0;
+          return MainScreen(initialTab: initialTab);
+        },
         routes: [
           GoRoute(
              path: 'watchlist',

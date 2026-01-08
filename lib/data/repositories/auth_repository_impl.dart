@@ -33,7 +33,22 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> resetPassword(String email) async {
-    // TODO: Implement reset password in data source and here
-    throw UnimplementedError();
+    await remoteDataSource.sendPasswordResetEmail(email);
+  }
+
+  @override
+  Future<void> updateProfile({String? displayName, String? photoUrl}) async {
+    await remoteDataSource.updateProfile(displayName: displayName, photoUrl: photoUrl);
+  }
+
+  @override
+  Future<void> updatePassword(String currentPassword, String newPassword) async {
+    await remoteDataSource.updatePassword(currentPassword, newPassword);
+  }
+
+  @override
+  Future<void> deleteAccount(String password) async {
+    await remoteDataSource.deleteAccount(password);
   }
 }
+
