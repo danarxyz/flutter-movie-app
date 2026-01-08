@@ -24,8 +24,10 @@ class UserManagementRepositoryImpl implements UserManagementRepository {
       id: user.id,
       email: user.email,
       name: user.name,
+      username: user.username,
       profileImageUrl: user.profileImageUrl,
       role: user.role,
+      createdAt: user.createdAt,
     );
     await dataSource.createUserProfile(userModel);
   }
@@ -36,8 +38,10 @@ class UserManagementRepositoryImpl implements UserManagementRepository {
       id: user.id,
       email: user.email,
       name: user.name,
+      username: user.username,
       profileImageUrl: user.profileImageUrl,
       role: user.role,
+      createdAt: user.createdAt,
     );
     await dataSource.updateUserProfile(userModel);
   }

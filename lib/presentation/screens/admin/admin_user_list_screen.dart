@@ -587,7 +587,9 @@ class _AdminUserListScreenState extends ConsumerState<AdminUserListScreen> {
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   name: nameController.text,
                   email: emailController.text,
+                  username: emailController.text.split('@').first,
                   role: selectedRole,
+                  createdAt: DateTime.now(),
                 );
                 Navigator.pop(context);
                 await ref.read(userManagementProvider.notifier).createUser(newUser);
@@ -658,8 +660,10 @@ class _AdminUserListScreenState extends ConsumerState<AdminUserListScreen> {
                 id: user.id,
                 name: nameController.text,
                 email: emailController.text,
+                username: user.username,
                 role: user.role,
                 profileImageUrl: user.profileImageUrl,
+                createdAt: user.createdAt,
               );
               Navigator.pop(context);
               await ref.read(userManagementProvider.notifier).updateUser(updatedUser);

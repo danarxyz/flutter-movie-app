@@ -13,6 +13,7 @@ class SignUpScreen extends ConsumerStatefulWidget {
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -23,6 +24,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -33,6 +35,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     if (_formKey.currentState!.validate()) {
       ref.read(authProvider.notifier).register(
             _nameController.text.trim(),
+            _usernameController.text.trim(),
             _emailController.text.trim(),
             _passwordController.text.trim(),
           );
@@ -107,6 +110,30 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                
+                // Username Field
+                _buildLabel('Username'),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _usernameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _buildInputDecoration(
+                    hintText: 'Choose a unique username',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a username';
+                    }
+                    if (value.length < 3) {
+                      return 'Username must be at least 3 characters';
+                    }
+                    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+                      return 'Only letters, numbers, and underscore allowed';
                     }
                     return null;
                   },

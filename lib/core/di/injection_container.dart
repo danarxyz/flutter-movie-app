@@ -31,7 +31,7 @@ Future<void> init() async {
     () => MovieRemoteDataSourceImpl(client: sl()),
   );
   sl.registerLazySingleton<AuthDataSource>(
-    () => AuthDataSourceImpl(firebaseAuth: sl()),
+    () => AuthDataSourceImpl(firebaseAuth: sl(), firebaseDatabase: sl()),
   );
   sl.registerLazySingleton<UserManagementDataSource>(
     () => UserManagementDataSourceImpl(firebaseDatabase: sl()),
