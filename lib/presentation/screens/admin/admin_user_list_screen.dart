@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/screen_utils.dart';
+import '../../widgets/responsive/responsive_layout.dart';
 import '../../../domain/entities/user_entity.dart';
 
 class AdminUserListScreen extends StatefulWidget {
@@ -63,13 +65,115 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _users.length,
-        itemBuilder: (context, index) {
-          final user = _users[index];
-          return _buildUserCard(user);
-        },
+      body: ResponsiveLayout(
+        mobileBody: _buildMobileList(),
+        desktopBody: _buildDesktopTable(),
+      ),
+    );
+  }
+
+  Widget _buildMobileList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _users.length,
+      itemBuilder: (context, index) {
+        final user = _users[index];
+        return _buildUserCard(user);
+      },
+    );
+  }
+
+  Widget _buildDesktopTable() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.borderDark),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: DataTable(
+            headingRowColor: WidgetStateProperty.all(AppTheme.surfaceDark),
+            dataRowColor: WidgetStateProperty.all(AppTheme.surfaceContainer),
+            columnSpacing: 24,
+            horizontalMargin: 24,
+            columns: const [
+              DataColumn(
+                label: Text('User', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+              ),
+              DataColumn(
+                label: Text('Email', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+              ),
+              DataColumn(
+                label: Text('Role', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+              ),
+              DataColumn(
+                label: Text('Actions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+              ),
+            ],
+            rows: _users.map((user) {
+              return DataRow(
+                cells: [
+                  DataCell(
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.surfaceDark,
+                          ),
+                          child: Icon(Icons.person, size: 20, color: AppTheme.textSecondary),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(user.name, style: const TextStyle(color: Colors.white)),
+                      ],
+                    )
+                  ),
+                  DataCell(Text(user.email, style: TextStyle(color: AppTheme.textSecondary))),
+                  DataCell(
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: user.role == 'admin' 
+                            ? AppTheme.primary.withValues(alpha: 0.2)
+                            : Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        user.role.toUpperCase(),
+                        style: TextStyle(
+                          color: user.role == 'admin' ? AppTheme.primary : Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 20, color: Colors.blueAccent),
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 20, color: Colors.redAccent),
+                          onPressed: () => _showDeleteConfirmation(context, user),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }

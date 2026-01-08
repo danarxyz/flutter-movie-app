@@ -6,6 +6,7 @@ import '../../presentation/screens/auth/signup_screen.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/main_screen.dart';
 import '../../presentation/screens/details/movie_detail_screen.dart';
+import '../../presentation/screens/home/content_list_screen.dart';
 import '../../presentation/screens/watchlist/watchlist_screen.dart';
 import '../../presentation/screens/profile/profile_screen.dart';
 import '../../presentation/screens/search/search_screen.dart';
@@ -66,6 +67,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
               final type = state.uri.queryParameters['type'] ?? 'movie';
               return MovieDetailScreen(movieId: id, mediaType: type);
+            },
+          ),
+          GoRoute(
+            path: 'list',
+            name: 'content-list',
+            builder: (context, state) {
+              final title = state.uri.queryParameters['title'] ?? 'List';
+              final category = state.uri.queryParameters['category'] ?? '';
+              return ContentListScreen(title: title, category: category);
             },
           ),
         ]

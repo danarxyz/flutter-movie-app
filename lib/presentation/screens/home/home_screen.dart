@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/screen_utils.dart';
 import '../../../domain/entities/movie.dart';
 import '../../providers/movie_provider.dart';
 
@@ -80,7 +81,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             
             // Trending Now Section
             SliverToBoxAdapter(
-              child: _buildSectionTitle('Trending Now', onSeeAll: () {}),
+              child: _buildSectionTitle('Trending Now', onSeeAll: () {
+                String category = 'trending_movie';
+                if (_selectedFilter == 1) category = 'trending_tv';
+                if (_selectedFilter == 2) category = 'trending_tv'; // Reuse for anime if needed, or implement trending_anime
+                
+                context.push(Uri(path: '/list', queryParameters: {
+                  'title': 'Trending Now',
+                  'category': category
+                }).toString());
+              }),
             ),
             SliverToBoxAdapter(
               child: _buildTrendingCarousel(trendingState),
@@ -90,7 +100,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             SliverToBoxAdapter(
               child: _buildSectionTitle(
                 _selectedFilter == 1 ? 'Popular TV Shows' : _selectedFilter == 2 ? 'Popular Anime' : 'Popular Movies', 
-                onSeeAll: () {}
+                onSeeAll: () {
+                  String category = 'popular_movie';
+                  String title = 'Popular Movies';
+                  
+                  if (_selectedFilter == 1) {
+                    category = 'popular_tv';
+                    title = 'Popular TV Shows';
+                  } else if (_selectedFilter == 2) {
+                    category = 'anime';
+                    title = 'Popular Anime';
+                  }
+                  
+                  context.push(Uri(path: '/list', queryParameters: {
+                    'title': title,
+                    'category': category
+                  }).toString());
+                }
               ),
             ),
             SliverToBoxAdapter(
@@ -100,7 +126,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             // Top Rated Section (Show only for Movies filter or reuse popular for others for now)
             if (_selectedFilter == 0) ...[
               SliverToBoxAdapter(
-                child: _buildSectionTitle('Top Rated', onSeeAll: () {}),
+                child: _buildSectionTitle('Top Rated', onSeeAll: () {
+                  context.push(Uri(path: '/list', queryParameters: {
+                    'title': 'Top Rated Movies',
+                    'category': 'top_rated_movie'
+                  }).toString());
+                }),
               ),
               SliverToBoxAdapter(
                 child: _buildHorizontalList(topRatedState, showRating: true),
@@ -111,7 +142,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             SliverToBoxAdapter(
               child: _buildSectionTitle(
                  _selectedFilter == 1 ? 'Top TV Series' : _selectedFilter == 2 ? 'Top Anime' : 'For You',
-                 onSeeAll: () {}
+                 // For You currently reuses top rated or popular, so we can link there
+                 onSeeAll: () {
+                    String category = 'top_rated_movie';
+                    if (_selectedFilter == 1) category = 'popular_tv';
+                    if (_selectedFilter == 2) category = 'anime';
+                    
+                    context.push(Uri(path: '/list', queryParameters: {
+                      'title': _selectedFilter == 0 ? 'For You' : (_selectedFilter == 1 ? 'Top TV Series' : 'Top Anime'),
+                      'category': category
+                    }).toString());
+                 }
               ),
             ),
             _buildForYouGrid(gridState),
@@ -246,14 +287,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     
     if (state is MovieLoaded) {
       return SizedBox(
-        height: 280,
-        child: PageView.builder(
-          controller: PageController(viewportFraction: 0.85),
-          itemCount: state.movies.take(5).length,
-          itemBuilder: (context, index) {
-            final movie = state.movies[index];
-            return _buildTrendingCard(movie);
-          },
+        height: 320, // Increased slightly for better spacing
+        child: LayoutBuilder( // Use LayoutBuilder to access constraints if needed, or ScreenUtils
+          builder: (context, constraints) {
+            double viewportFraction = 0.85;
+            if (ScreenUtils.isDesktop(context)) {
+              viewportFraction = 0.25; // Show ~4 items
+            } else if (ScreenUtils.isTablet(context)) {
+              viewportFraction = 0.45; // Show ~2 items
+            }
+
+            return PageView.builder(
+              controller: PageController(viewportFraction: viewportFraction),
+              itemCount: state.movies.take(10).length, // Show more trending on huge screens
+              padEnds: false, // Start from left
+              itemBuilder: (context, index) {
+                final movie = state.movies[index];
+                return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    child: _buildTrendingCard(movie),
+                );
+              },
+            );
+          }
         ),
       );
     }
