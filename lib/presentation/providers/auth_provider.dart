@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/di/injection_container.dart';
+import '../../core/utils/network_utils.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -10,9 +11,19 @@ class AuthState {
   final String? error;
   final String? successMessage;
 
-  const AuthState({this.user, this.isLoading = false, this.error, this.successMessage});
+  const AuthState({
+    this.user,
+    this.isLoading = false,
+    this.error,
+    this.successMessage,
+  });
 
-  AuthState copyWith({UserEntity? user, bool isLoading = false, String? error, String? successMessage}) {
+  AuthState copyWith({
+    UserEntity? user,
+    bool isLoading = false,
+    String? error,
+    String? successMessage,
+  }) {
     return AuthState(
       user: user ?? this.user,
       isLoading: isLoading,
@@ -34,25 +45,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
     // initial check
     final user = await _repository.getCurrentUser();
     if (user != null) {
-        state = AuthState(user: user);
+      state = AuthState(user: user);
     }
   }
 
   Future<void> login(String email, String password) async {
     state = state.copyWith(isLoading: true);
     try {
-      final user = await _repository.login(email, password);
+      final user = await NetworkUtils.executeWithNetworkCheck(
+        operation: () => _repository.login(email, password),
+      );
       state = AuthState(user: user);
+    } on NetworkException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
-  Future<void> register(String name, String username, String email, String password) async {
+  Future<void> register(
+    String name,
+    String username,
+    String email,
+    String password,
+  ) async {
     state = state.copyWith(isLoading: true);
     try {
-      final user = await _repository.register(name, username, email, password);
+      final user = await NetworkUtils.executeWithNetworkCheck(
+        operation: () => _repository.register(name, username, email, password),
+      );
       state = AuthState(user: user);
+    } on NetworkException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -67,8 +91,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> resetPassword(String email) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _repository.resetPassword(email);
-      state = state.copyWith(isLoading: false, successMessage: 'Password reset email sent!');
+      await NetworkUtils.executeWithNetworkCheck(
+        operation: () => _repository.resetPassword(email),
+      );
+      state = state.copyWith(
+        isLoading: false,
+        successMessage: 'Password reset email sent!',
+      );
+    } on NetworkException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -77,26 +108,47 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<bool> updateProfile({String? displayName}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _repository.updateProfile(displayName: displayName);
+      await NetworkUtils.executeWithNetworkCheck(
+        operation: () => _repository.updateProfile(displayName: displayName),
+      );
       // Refresh user data
       final updatedUser = await _repository.getCurrentUser();
-      state = AuthState(user: updatedUser, successMessage: 'Profile updated successfully!');
+      state = AuthState(
+        user: updatedUser,
+        successMessage: 'Profile updated successfully!',
+      );
       return true;
+    } on NetworkException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
-  Future<bool> updatePassword(String currentPassword, String newPassword) async {
+  Future<bool> updatePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _repository.updatePassword(currentPassword, newPassword);
-      state = state.copyWith(isLoading: false, successMessage: 'Password changed successfully!');
+      await NetworkUtils.executeWithNetworkCheck(
+        operation: () =>
+            _repository.updatePassword(currentPassword, newPassword),
+      );
+      state = state.copyWith(
+        isLoading: false,
+        successMessage: 'Password changed successfully!',
+      );
       return true;
+    } on NetworkException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      return false;
     } catch (e) {
       String errorMessage = e.toString();
-      if (errorMessage.contains('wrong-password') || errorMessage.contains('invalid-credential')) {
+      if (errorMessage.contains('wrong-password') ||
+          errorMessage.contains('invalid-credential')) {
         errorMessage = 'Current password is incorrect';
       } else if (errorMessage.contains('weak-password')) {
         errorMessage = 'New password is too weak';
@@ -109,12 +161,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<bool> deleteAccount(String password) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _repository.deleteAccount(password);
+      await NetworkUtils.executeWithNetworkCheck(
+        operation: () => _repository.deleteAccount(password),
+      );
       state = const AuthState();
       return true;
+    } on NetworkException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      return false;
     } catch (e) {
       String errorMessage = e.toString();
-      if (errorMessage.contains('wrong-password') || errorMessage.contains('invalid-credential')) {
+      if (errorMessage.contains('wrong-password') ||
+          errorMessage.contains('invalid-credential')) {
         errorMessage = 'Password is incorrect';
       }
       state = state.copyWith(isLoading: false, error: errorMessage);
@@ -128,9 +186,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 // Providers
-final authRepositoryProvider = Provider<AuthRepository>((ref) => sl<AuthRepository>());
+final authRepositoryProvider = Provider<AuthRepository>(
+  (ref) => sl<AuthRepository>(),
+);
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(ref.watch(authRepositoryProvider));
 });
-
