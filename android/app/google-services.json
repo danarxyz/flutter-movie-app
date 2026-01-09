@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "171602015562",
+    "firebase_url": "https://watchly-movie-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "watchly-movie",
     "storage_bucket": "watchly-movie.firebasestorage.app"
   },

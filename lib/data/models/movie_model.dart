@@ -36,9 +36,17 @@ class MovieModel extends Movie {
           .toList()
           .cast<String>();
     } else if (json['genres'] != null) {
-      json['genres'].forEach((v) {
-        genres.add(v['name']);
-      });
+      final genresList = json['genres'] as List;
+      if (genresList.isNotEmpty) {
+        // Handle both object format (from TMDB) and string format (from Firebase)
+        if (genresList.first is String) {
+          genres = genresList.cast<String>();
+        } else if (genresList.first is Map) {
+          for (var v in genresList) {
+            genres.add(v['name'] ?? '');
+          }
+        }
+      }
     }
 
     // Parse runtime logic

@@ -284,6 +284,8 @@ class _MovieDetailScreenState extends ConsumerState<MovieDetailScreen> {
                                       label: 'VIEW',
                                       textColor: AppTheme.primary,
                                       onPressed: () {
+                                        // Hide snackbar first
+                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                         // Navigate to watchlist tab (index 2)
                                         context.go('/?tab=2');
                                       },

@@ -32,7 +32,29 @@ class AuthDataSourceImpl implements AuthDataSource {
   DatabaseReference get _usernamesRef => firebaseDatabase.ref('usernames');
 
   @override
-  Future<UserModel> signInWithEmail(String email, String password) async {
+  Future<UserModel> signInWithEmail(String emailOrUsername, String password) async {
+    String email = emailOrUsername;
+    
+    // If input doesn't contain @, treat as username and lookup email
+    if (!emailOrUsername.contains('@')) {
+      final usernameSnapshot = await _usernamesRef.child(emailOrUsername.toLowerCase()).get();
+      if (!usernameSnapshot.exists) {
+        throw Exception('Username not found');
+      }
+      
+      final uid = usernameSnapshot.value as String;
+      final userSnapshot = await _usersRef.child(uid).get();
+      if (!userSnapshot.exists) {
+        throw Exception('User data not found');
+      }
+      
+      final userData = Map<String, dynamic>.from(userSnapshot.value as Map);
+      email = userData['email'] ?? '';
+      if (email.isEmpty) {
+        throw Exception('Email not found for this username');
+      }
+    }
+    
     final result = await firebaseAuth.signInWithEmailAndPassword(
         email: email, password: password);
     final user = result.user;
