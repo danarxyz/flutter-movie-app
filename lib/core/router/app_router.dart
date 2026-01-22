@@ -19,7 +19,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: ValueNotifier(authNotifier), 
+    refreshListenable: ValueNotifier(authNotifier),
     redirect: (context, state) {
       final isLoggedIn = authNotifier.user != null;
       final isLoggingIn = state.uri.toString() == '/login';
@@ -45,24 +45,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
         routes: [
           GoRoute(
-             path: 'watchlist',
-             name: 'watchlist',
-             builder: (context, state) => const WatchlistScreen(),
+            path: 'watchlist',
+            name: 'watchlist',
+            builder: (context, state) => const WatchlistScreen(),
           ),
           GoRoute(
-             path: 'profile',
-             name: 'profile',
-             builder: (context, state) => const ProfileScreen(),
+            path: 'profile',
+            name: 'profile',
+            builder: (context, state) => const ProfileScreen(),
           ),
-           GoRoute(
-             path: 'search',
-             name: 'search',
-             builder: (context, state) => const SearchScreen(),
+          GoRoute(
+            path: 'search',
+            name: 'search',
+            builder: (context, state) => const SearchScreen(),
           ),
-           GoRoute(
-             path: 'admin',
-             name: 'admin',
-             builder: (context, state) => const AdminUserListScreen(),
+          GoRoute(
+            path: 'admin',
+            name: 'admin',
+            builder: (context, state) => const AdminUserListScreen(),
           ),
           GoRoute(
             path: 'movie/:id',
@@ -82,7 +82,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               return ContentListScreen(title: title, category: category);
             },
           ),
-        ]
+        ],
       ),
       GoRoute(
         path: '/login',
@@ -94,7 +94,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'signup',
         builder: (context, state) => const SignUpScreen(),
       ),
-       GoRoute(
+      GoRoute(
         path: '/forgot-password',
         name: 'forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
@@ -102,4 +102,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-

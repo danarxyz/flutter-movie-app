@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/snackbar_utils.dart'; // Import utility
 import '../../providers/auth_provider.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
@@ -46,12 +47,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget build(BuildContext context) {
     ref.listen(authProvider, (previous, next) {
       if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarUtils.showError(context, next.error!);
         ref.read(authProvider.notifier).clearMessages();
       }
     });

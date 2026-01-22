@@ -98,6 +98,7 @@ class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
   }
   
   // New: Get TV Details
+  @override
   Future<MovieModel> getTVDetails(int id) async {
     final response = await client.get(
       '${AppConstants.tmdbBaseUrl}/tv/$id',

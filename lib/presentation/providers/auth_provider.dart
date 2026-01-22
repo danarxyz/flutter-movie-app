@@ -42,10 +42,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> checkAuthStatus() async {
-    // initial check
-    final user = await _repository.getCurrentUser();
-    if (user != null) {
-      state = AuthState(user: user);
+    // initial check - wrapped in try-catch to handle permission errors
+    // This can happen if user session exists but Firebase rules deny access
+    try {
+      final user = await _repository.getCurrentUser();
+      if (user != null) {
+        state = AuthState(user: user);
+      }
+    } catch (e) {
+      // Silently fail on permission errors during initial check
+      // User will need to login again
+      state = const AuthState();
     }
   }
 

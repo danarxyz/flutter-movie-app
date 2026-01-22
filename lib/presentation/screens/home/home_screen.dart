@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/responsive_extensions.dart';
-import '../../../domain/entities/movie.dart';
 import '../../providers/movie_provider.dart';
 import '../../widgets/error_screen.dart';
+import '../../widgets/shimmer_loading.dart';
+import '../../widgets/home_movie_cards.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -16,156 +18,151 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _selectedFilter = 0;
-  final List<String> _filters = ['Movies', 'TV Shows', 'Anime'];
+  // Use Enum for cleaner logic
+  ContentFilter _selectedFilter = ContentFilter.movies;
 
   @override
   void initState() {
     super.initState();
-    // Load initial data
     Future.microtask(() {
-      _loadDataForFilter(0);
+      _loadDataForFilter(ContentFilter.movies);
     });
   }
 
-  void _loadDataForFilter(int index) {
-    if (index == 0) {
-      // Movies
-      ref.read(trendingMoviesProvider.notifier).loadTrendingMovies();
-      ref.read(popularMoviesProvider.notifier).loadPopularMovies();
-      ref.read(topRatedMoviesProvider.notifier).loadTopRatedMovies();
-    } else if (index == 1) {
-      // TV Shows
-      ref.read(trendingTVProvider.notifier).loadTrendingTVShows();
-      ref.read(popularTVProvider.notifier).loadPopularTVShows();
-      // For Top Rated we can reuse or add another provider, for now just reuse popular for grid
-    } else if (index == 2) {
-      // Anime
-      ref.read(trendingTVProvider.notifier).loadTrendingTVShows();
-      ref.read(animeProvider.notifier).loadAnime();
+  void _loadDataForFilter(ContentFilter filter) {
+    switch (filter) {
+      case ContentFilter.movies:
+        ref.read(trendingMoviesProvider.notifier).loadTrendingMovies();
+        ref.read(popularMoviesProvider.notifier).loadPopularMovies();
+        ref.read(topRatedMoviesProvider.notifier).loadTopRatedMovies();
+        break;
+      case ContentFilter.tvShows:
+        ref.read(trendingTVProvider.notifier).loadTrendingTVShows();
+        ref.read(popularTVProvider.notifier).loadPopularTVShows();
+        break;
+      case ContentFilter.anime:
+        ref.read(trendingTVProvider.notifier).loadTrendingTVShows(); // Reusing trending TV for now
+        ref.read(animeProvider.notifier).loadAnime();
+        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Trending: Switch based on filter
-    final trendingState = (_selectedFilter == 1 || _selectedFilter == 2)
-        ? ref.watch(trendingTVProvider)
-        : ref.watch(trendingMoviesProvider);
+    // Determine Providers based on filter
+    final trendingState = _selectedFilter == ContentFilter.movies 
+        ? ref.watch(trendingMoviesProvider)
+        : ref.watch(trendingTVProvider);
     
-    // Switch state based on filter
-    final popularState = _selectedFilter == 1 
-        ? ref.watch(popularTVProvider) 
-        : _selectedFilter == 2 
-            ? ref.watch(animeProvider)
-            : ref.watch(popularMoviesProvider);
+    final popularState = _selectedFilter == ContentFilter.movies 
+        ? ref.watch(popularMoviesProvider)
+        : _selectedFilter == ContentFilter.tvShows
+            ? ref.watch(popularTVProvider)
+            : ref.watch(animeProvider);
     
-    final topRatedState = ref.watch(topRatedMoviesProvider); // Keep for movies
+    final topRatedState = ref.watch(topRatedMoviesProvider);
     
-    // For "For You" grid, we use the selected category content
-    final gridState = _selectedFilter == 0 ? topRatedState : popularState;
+    // For You / Grid Content
+    final gridState = _selectedFilter == ContentFilter.movies 
+        ? topRatedState 
+        : popularState;
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceDark,
       body: SafeArea(
         child: CustomScrollView(
+          physics: const BouncingScrollPhysics(), // UX Detail: Bouncing scroll feels better
           slivers: [
-            // Header (App Bar)
-            SliverToBoxAdapter(
-              child: _buildHeader(),
-            ),
+            SliverToBoxAdapter(child: _buildHeader()),
+            SliverToBoxAdapter(child: _buildFilterChips()),
             
-            // Filter Chips
+            // Trending
             SliverToBoxAdapter(
-              child: _buildFilterChips(),
-            ),
-            
-            // Trending Now Section
-            SliverToBoxAdapter(
-              child: _buildSectionTitle('Trending Now', onSeeAll: () {
-                String category = 'trending_movie';
-                if (_selectedFilter == 1) category = 'trending_tv';
-                if (_selectedFilter == 2) category = 'trending_tv'; // Reuse for anime if needed, or implement trending_anime
-                
-                context.push(Uri(path: '/list', queryParameters: {
-                  'title': 'Trending Now',
-                  'category': category
-                }).toString());
+              child: _buildSectionTitle(AppConstants.trendingTitle, onSeeAll: () {
+                HapticFeedback.lightImpact();
+                final category = _selectedFilter == ContentFilter.movies 
+                    ? AppConstants.catTrendingMovie 
+                    : AppConstants.catTrendingTV;
+                _navigateToSeeAll(AppConstants.trendingTitle, category);
               }),
             ),
-            SliverToBoxAdapter(
-              child: _buildTrendingCarousel(trendingState),
-            ),
+            SliverToBoxAdapter(child: _buildTrendingCarousel(trendingState)),
             
-            // Popular Section (Dynamic Title)
+            // Popular
             SliverToBoxAdapter(
               child: _buildSectionTitle(
-                _selectedFilter == 1 ? 'Popular TV Shows' : _selectedFilter == 2 ? 'Popular Anime' : 'Popular Movies', 
+                _getPopularTitle(), 
                 onSeeAll: () {
-                  String category = 'popular_movie';
-                  String title = 'Popular Movies';
-                  
-                  if (_selectedFilter == 1) {
-                    category = 'popular_tv';
-                    title = 'Popular TV Shows';
-                  } else if (_selectedFilter == 2) {
-                    category = 'anime';
-                    title = 'Popular Anime';
-                  }
-                  
-                  context.push(Uri(path: '/list', queryParameters: {
-                    'title': title,
-                    'category': category
-                  }).toString());
+                  HapticFeedback.lightImpact();
+                  _navigateToSeeAll(_getPopularTitle(), _getPopularCategory());
                 }
               ),
             ),
-            SliverToBoxAdapter(
-              child: _buildHorizontalList(popularState),
-            ),
+            SliverToBoxAdapter(child: _buildHorizontalList(popularState)),
             
-            // Top Rated Section (Show only for Movies filter or reuse popular for others for now)
-            if (_selectedFilter == 0) ...[
+            // Top Rated (Only for Movies)
+            if (_selectedFilter == ContentFilter.movies) ...[
               SliverToBoxAdapter(
-                child: _buildSectionTitle('Top Rated', onSeeAll: () {
-                  context.push(Uri(path: '/list', queryParameters: {
-                    'title': 'Top Rated Movies',
-                    'category': 'top_rated_movie'
-                  }).toString());
+                child: _buildSectionTitle(AppConstants.topRatedMoviesTitle, onSeeAll: () {
+                  HapticFeedback.lightImpact();
+                  _navigateToSeeAll(AppConstants.topRatedMoviesTitle, AppConstants.catTopRatedMovie);
                 }),
               ),
-              SliverToBoxAdapter(
-                child: _buildHorizontalList(topRatedState, showRating: true),
-              ),
+              SliverToBoxAdapter(child: _buildHorizontalList(topRatedState, showRating: true)),
             ],
             
-            // For You Section (Grid)
+            // For You / Grid
             SliverToBoxAdapter(
               child: _buildSectionTitle(
-                 _selectedFilter == 1 ? 'Top TV Series' : _selectedFilter == 2 ? 'Top Anime' : 'For You',
-                 // For You currently reuses top rated or popular, so we can link there
+                 _getForYouTitle(),
                  onSeeAll: () {
-                    String category = 'top_rated_movie';
-                    if (_selectedFilter == 1) category = 'popular_tv';
-                    if (_selectedFilter == 2) category = 'anime';
-                    
-                    context.push(Uri(path: '/list', queryParameters: {
-                      'title': _selectedFilter == 0 ? 'For You' : (_selectedFilter == 1 ? 'Top TV Series' : 'Top Anime'),
-                      'category': category
-                    }).toString());
+                    HapticFeedback.lightImpact();
+                    // Just reuse popular/top rated for the "See all" of grid for now
+                    final category = _selectedFilter == ContentFilter.movies 
+                        ? AppConstants.catTopRatedMovie 
+                        : (_selectedFilter == ContentFilter.tvShows ? AppConstants.catPopularTV : AppConstants.catAnime);
+                    _navigateToSeeAll(_getForYouTitle(), category);
                  }
               ),
             ),
             _buildForYouGrid(gridState),
             
-            // Bottom Padding
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
       ),
     );
+  }
+
+  void _navigateToSeeAll(String title, String category) {
+    context.push(Uri(path: AppConstants.routeList, queryParameters: {
+      'title': title,
+      'category': category
+    }).toString());
+  }
+
+  String _getPopularTitle() {
+    switch (_selectedFilter) {
+      case ContentFilter.movies: return AppConstants.popularMoviesTitle;
+      case ContentFilter.tvShows: return AppConstants.popularTVTitle;
+      case ContentFilter.anime: return AppConstants.popularAnimeTitle;
+    }
+  }
+
+  String _getPopularCategory() {
+    switch (_selectedFilter) {
+      case ContentFilter.movies: return AppConstants.catPopularMovie;
+      case ContentFilter.tvShows: return AppConstants.catPopularTV;
+      case ContentFilter.anime: return AppConstants.catAnime;
+    }
+  }
+
+  String _getForYouTitle() {
+     switch (_selectedFilter) {
+      case ContentFilter.movies: return AppConstants.forYouTitle;
+      case ContentFilter.tvShows: return AppConstants.topTVTitle;
+      case ContentFilter.anime: return AppConstants.topAnimeTitle;
+    }
   }
 
   Widget _buildHeader() {
@@ -174,13 +171,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Logo
           Row(
             children: [
-              Icon(Icons.movie_filter, color: AppTheme.primary, size: 32),
+              const Icon(Icons.movie_filter, color: AppTheme.primary, size: 32),
               const SizedBox(width: 8),
               const Text(
-                'Watchly',
+                AppConstants.appName,
                 style: TextStyle(
                   color: AppTheme.primary,
                   fontSize: 24,
@@ -189,9 +185,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
-          // Profile Avatar
           GestureDetector(
-            onTap: () => context.push('/profile'),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.push(AppConstants.routeProfile);
+            },
             child: Container(
               width: 40,
               height: 40,
@@ -199,7 +197,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white24, width: 2),
               ),
-              child: ClipOval(
+              child: const ClipOval(
                 child: Icon(Icons.person, color: AppTheme.textSecondary),
               ),
             ),
@@ -212,35 +210,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildFilterChips() {
     return SizedBox(
       height: 40,
-      child: ListView.builder(
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _filters.length,
+        itemCount: ContentFilter.values.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
-          final isSelected = _selectedFilter == index;
-          return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: FilterChip(
-              label: Text(_filters[index]),
-              selected: isSelected,
-              showCheckmark: false, // Prevents size change
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              onSelected: (selected) {
-                setState(() => _selectedFilter = index);
-                _loadDataForFilter(index);
-              },
-              backgroundColor: AppTheme.surfaceContainer,
-              selectedColor: AppTheme.primary,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppTheme.textSecondary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              side: BorderSide.none,
+          final filter = ContentFilter.values[index];
+          final isSelected = _selectedFilter == filter;
+          return FilterChip(
+            label: Text(filter.label),
+            selected: isSelected,
+            showCheckmark: false,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            onSelected: (selected) {
+              if (!isSelected) { // Prevent reload if already selected
+                HapticFeedback.selectionClick(); // UX Detail
+                setState(() => _selectedFilter = filter);
+                _loadDataForFilter(filter);
+              }
+            },
+            backgroundColor: AppTheme.surfaceContainer,
+            selectedColor: AppTheme.primary,
+            labelStyle: TextStyle(
+              color: isSelected ? Colors.white : AppTheme.textSecondary,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            side: BorderSide.none,
           );
         },
       ),
@@ -264,10 +264,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (onSeeAll != null)
             TextButton(
               onPressed: onSeeAll,
-              child: const Text(
-                'See all',
-                style: TextStyle(color: AppTheme.primary),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primary,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
+              child: const Text(AppConstants.seeAll),
             ),
         ],
       ),
@@ -276,53 +277,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildTrendingCarousel(MovieState state) {
     if (state is MovieLoading) {
-      return const SizedBox(
-        height: 280,
-        child: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+      return SizedBox(
+        height: 320,
+        child: PageView.builder(
+           controller: PageController(viewportFraction: 0.85),
+           itemCount: 3,
+           itemBuilder: (context, index) {
+             return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                child: ShimmerLoading(width: double.infinity, height: double.infinity, borderRadius: BorderRadius.all(Radius.circular(16))),
+             );
+           }
+        ),
       );
     }
     
     if (state is MovieError) {
-      if (isNetworkError(state.message)) {
-        return SizedBox(
-          height: 280,
-          child: ErrorScreen.noInternet(
-            onRetry: () => _loadDataForFilter(_selectedFilter),
-            isFullScreen: false,
-          ),
-        );
-      }
+      // Simplification: Reusing logic from original code but cleaned up
       return SizedBox(
         height: 280,
-        child: ErrorScreen.generalError(
-          message: state.message,
-          onRetry: () => _loadDataForFilter(_selectedFilter),
-          isFullScreen: false,
-        ),
+        child: isNetworkError(state.message) 
+          ? ErrorScreen.noInternet(onRetry: () => _loadDataForFilter(_selectedFilter), isFullScreen: false)
+          : ErrorScreen.generalError(message: state.message, onRetry: () => _loadDataForFilter(_selectedFilter), isFullScreen: false),
       );
     }
     
     if (state is MovieLoaded) {
       return SizedBox(
-        height: 320, // Increased slightly for better spacing
-        child: LayoutBuilder( // Use LayoutBuilder to access constraints if needed, or ScreenUtils
+        height: 320,
+        child: LayoutBuilder(
           builder: (context, constraints) {
-            double viewportFraction = 0.85;
-            if (context.isDesktop) {
-              viewportFraction = 0.25; // Show ~4 items
-            } else if (context.isTablet) {
-              viewportFraction = 0.45; // Show ~2 items
-            }
-
+            double viewportFraction = context.isDesktop ? 0.25 : (context.isTablet ? 0.45 : 0.85);
             return PageView.builder(
               controller: PageController(viewportFraction: viewportFraction),
-              itemCount: state.movies.take(10).length, // Show more trending on huge screens
-              padEnds: false, // Start from left
+              itemCount: state.movies.take(10).length,
+              padEnds: false,
               itemBuilder: (context, index) {
-                final movie = state.movies[index];
                 return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                    child: _buildTrendingCard(movie),
+                    child: TrendingCard(movie: state.movies[index]),
                 );
               },
             );
@@ -330,120 +323,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       );
     }
-    
     return const SizedBox(height: 280);
-  }
-
-  Widget _buildTrendingCard(Movie movie) {
-    return GestureDetector(
-      onTap: () => context.push('/movie/${movie.id}?type=${movie.mediaType}'),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Background Image
-              CachedNetworkImage(
-                imageUrl: 'https://image.tmdb.org/t/p/w500${movie.posterPath}',
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: AppTheme.surfaceContainer,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: AppTheme.surfaceContainer,
-                  child: const Icon(Icons.movie, size: 50),
-                ),
-              ),
-              // Gradient Overlay
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.8),
-                    ],
-                  ),
-                ),
-              ),
-              // Content
-              Positioned(
-                bottom: 16,
-                left: 16,
-                right: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      movie.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          movie.voteAverage.toStringAsFixed(1),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildHorizontalList(MovieState state, {bool showRating = false}) {
     if (state is MovieLoading) {
-      return const SizedBox(
+      return SizedBox(
         height: 180,
-        child: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: 5,
+          itemBuilder: (context, index) => const MovieCardShimmer(),
+        ),
       );
     }
     
     if (state is MovieError) {
-      if (isNetworkError(state.message)) {
-        return SizedBox(
-          height: 180,
-          child: ErrorScreen.noInternet(
-            onRetry: () => _loadDataForFilter(_selectedFilter),
-            isFullScreen: false,
-          ),
-        );
-      }
-      return SizedBox(
+       return SizedBox(
         height: 180,
-        child: ErrorScreen.generalError(
-          message: state.message,
-          onRetry: () => _loadDataForFilter(_selectedFilter),
-          isFullScreen: false,
-        ),
+        child: isNetworkError(state.message) 
+          ? ErrorScreen.noInternet(onRetry: () => _loadDataForFilter(_selectedFilter), isFullScreen: false)
+          : ErrorScreen.generalError(message: state.message, onRetry: () => _loadDataForFilter(_selectedFilter), isFullScreen: false),
       );
     }
     
@@ -455,93 +356,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: state.movies.take(10).length,
           itemBuilder: (context, index) {
-            final movie = state.movies[index];
-            return _buildCompactCard(movie, showRating: showRating);
+            return CompactMovieCard(movie: state.movies[index], showRating: showRating);
           },
         ),
       );
     }
-    
     return const SizedBox(height: 180);
   }
 
-  Widget _buildCompactCard(Movie movie, {bool showRating = false}) {
-    return GestureDetector(
-      onTap: () => context.push('/movie/${movie.id}?type=${movie.mediaType}'),
-      child: Container(
-        width: 120,
-        margin: const EdgeInsets.only(right: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Poster
-            Expanded(
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: CachedNetworkImage(
-                      imageUrl: 'https://image.tmdb.org/t/p/w300${movie.posterPath}',
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (context, url) => Container(
-                        color: AppTheme.surfaceContainer,
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppTheme.surfaceContainer,
-                        child: const Icon(Icons.movie),
-                      ),
-                    ),
-                  ),
-                  if (showRating)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 12),
-                            const SizedBox(width: 2),
-                            Text(
-                              movie.voteAverage.toStringAsFixed(1),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Title
-            Text(
-              movie.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+  Widget _buildForYouGrid(MovieState state) {
+    if (state is MovieLoading) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: MovieGridShimmer(),
         ),
-      ),
-    );
-  }
-
-  SliverPadding _buildForYouGrid(MovieState state) {
+      );
+    }
+    
     if (state is MovieLoaded) {
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -557,8 +389,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   if (index >= state.movies.length) return null;
-                  final movie = state.movies[index];
-                  return _buildGridCard(movie);
+                  return GridMovieCard(movie: state.movies[index]);
                 },
                 childCount: state.movies.take(context.gridColumns * 2).length,
               ),
@@ -568,71 +399,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
     
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.65,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => const SizedBox(),
-          childCount: 0,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGridCard(Movie movie) {
-    return GestureDetector(
-      onTap: () => context.push('/movie/${movie.id}?type=${movie.mediaType}'),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: 'https://image.tmdb.org/t/p/w300${movie.posterPath}',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  placeholder: (context, url) => Container(color: AppTheme.surfaceContainer),
-                  errorWidget: (context, url, error) => Container(
-                    color: AppTheme.surfaceContainer,
-                    child: const Icon(Icons.movie),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              movie.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Row(
-              children: [
-                const Icon(Icons.star, color: Colors.amber, size: 12),
-                const SizedBox(width: 4),
-                Text(
-                  movie.voteAverage.toStringAsFixed(1),
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+    // Empty placeholder if needed
+    return const SliverToBoxAdapter(child: SizedBox());
   }
 }

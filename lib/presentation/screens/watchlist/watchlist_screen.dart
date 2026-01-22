@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/snackbar_utils.dart'; // Import utility
 import '../../../domain/entities/movie.dart';
 import '../../providers/movie_provider.dart';
 import '../../widgets/error_screen.dart';
@@ -122,22 +123,16 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
         _lastRemovedMovie = movie;
         ref.read(watchlistActionsProvider.notifier).removeFromWatchlist(movie.id);
         
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${movie.title} removed'),
-            action: SnackBarAction(
-              label: 'Undo',
-              textColor: AppTheme.primary,
-              onPressed: () {
-                if (_lastRemovedMovie != null) {
-                  ref.read(watchlistActionsProvider.notifier).addToWatchlist(_lastRemovedMovie!);
-                }
-              },
-            ),
-            backgroundColor: AppTheme.surfaceContainer,
-            behavior: SnackBarBehavior.floating,
-          ),
+        // Use standardized snackbar utility
+        SnackBarUtils.showWithAction(
+          context,
+          '${movie.title} removed',
+          actionLabel: 'Undo',
+          onPressed: () {
+             if (_lastRemovedMovie != null) {
+                ref.read(watchlistActionsProvider.notifier).addToWatchlist(_lastRemovedMovie!);
+             }
+          },
         );
       },
       child: GestureDetector(

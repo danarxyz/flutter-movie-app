@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/snackbar_utils.dart'; // Import utility
 import '../../providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -15,20 +16,10 @@ class ProfileScreen extends ConsumerWidget {
     // Listen for auth state changes (success/error messages)
     ref.listen(authProvider, (previous, next) {
       if (next.successMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.successMessage!),
-            backgroundColor: Colors.green.shade700,
-          ),
-        );
+        SnackBarUtils.showSuccess(context, next.successMessage!);
       }
       if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
+        SnackBarUtils.showError(context, next.error!);
         ref.read(authProvider.notifier).clearMessages();
       }
     });
@@ -363,9 +354,7 @@ class ProfileScreen extends ConsumerWidget {
             ElevatedButton(
               onPressed: isLoading ? null : () async {
                 if (nameController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('Name cannot be empty')),
-                  );
+                  SnackBarUtils.showInfo(dialogContext, 'Name cannot be empty');
                   return;
                 }
                 setState(() => isLoading = true);
@@ -421,9 +410,7 @@ class ProfileScreen extends ConsumerWidget {
           value: enabled,
           onChanged: (value) {
             setState(() => enabled = value);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('$title ${value ? 'enabled' : 'disabled'}')),
-            );
+            SnackBarUtils.showInfo(context, '$title ${value ? 'enabled' : 'disabled'}');
           },
           thumbColor: WidgetStatePropertyAll(enabled ? AppTheme.primary : AppTheme.textSecondary),
           trackColor: WidgetStatePropertyAll(enabled ? AppTheme.primary.withValues(alpha: 0.3) : AppTheme.surfaceContainer),
@@ -466,9 +453,7 @@ class ProfileScreen extends ConsumerWidget {
       title: Text(title, style: const TextStyle(color: Colors.white)),
       trailing: Text(value, style: TextStyle(color: AppTheme.primary)),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$title settings saved')),
-        );
+        SnackBarUtils.showInfo(context, '$title settings saved');
       },
     );
   }
@@ -592,21 +577,15 @@ class ProfileScreen extends ConsumerWidget {
                 if (currentPasswordController.text.isEmpty || 
                     newPasswordController.text.isEmpty || 
                     confirmPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('Please fill all fields')),
-                  );
+                  SnackBarUtils.showInfo(dialogContext, 'Please fill all fields');
                   return;
                 }
                 if (newPasswordController.text != confirmPasswordController.text) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('New passwords do not match')),
-                  );
+                  SnackBarUtils.showInfo(dialogContext, 'New passwords do not match');
                   return;
                 }
                 if (newPasswordController.text.length < 6) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('Password must be at least 6 characters')),
-                  );
+                  SnackBarUtils.showInfo(dialogContext, 'Password must be at least 6 characters');
                   return;
                 }
                 
@@ -688,9 +667,7 @@ class ProfileScreen extends ConsumerWidget {
             ElevatedButton(
               onPressed: isLoading ? null : () async {
                 if (passwordController.text.isEmpty) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('Please enter your password')),
-                  );
+                  SnackBarUtils.showInfo(dialogContext, 'Please enter your password');
                   return;
                 }
                 

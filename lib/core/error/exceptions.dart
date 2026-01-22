@@ -1,7 +1,7 @@
-/// Custom exceptions for error handling across the application.
-///
-/// These exceptions are thrown by data layer implementations and
-/// caught by use cases or providers for appropriate error handling.
+// Custom exceptions for error handling across the application.
+//
+// These exceptions are thrown by data layer implementations and
+// caught by use cases or providers for appropriate error handling.
 
 /// Base exception class for all app-specific exceptions.
 abstract class AppException implements Exception {

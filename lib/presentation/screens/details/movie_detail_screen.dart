@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/snackbar_utils.dart'; // Import utility
 import '../../../domain/entities/movie.dart';
 import '../../providers/movie_provider.dart';
 import '../../widgets/error_screen.dart';
@@ -269,28 +270,14 @@ class _MovieDetailScreenState extends ConsumerState<MovieDetailScreen> {
                             onPressed: () {
                               if (isInWatchlist) {
                                 ref.read(watchlistActionsProvider.notifier).removeFromWatchlist(movie.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Removed from watchlist'),
-                                    backgroundColor: AppTheme.surfaceContainer,
-                                  ),
-                                );
+                                SnackBarUtils.showInfo(context, 'Removed from watchlist');
                               } else {
                                 ref.read(watchlistActionsProvider.notifier).addToWatchlist(movie);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text('Added to watchlist'),
-                                    action: SnackBarAction(
-                                      label: 'VIEW',
-                                      textColor: AppTheme.primary,
-                                      onPressed: () {
-                                        // Hide snackbar first
-                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                        // Navigate to watchlist tab (index 2)
-                                        context.go('/?tab=2');
-                                      },
-                                    ),
-                                  ),
+                                SnackBarUtils.showWithAction(
+                                  context,
+                                  'Added to watchlist',
+                                  actionLabel: 'VIEW',
+                                  onPressed: () => context.go('/?tab=2'),
                                 );
                               }
                             },

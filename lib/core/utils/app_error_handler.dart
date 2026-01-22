@@ -1,7 +1,7 @@
-/// Global error handler untuk semua jenis error di aplikasi.
-///
-/// Centralized error handling dengan categorization untuk
-/// memberikan pesan user-friendly dalam Bahasa Indonesia.
+// Global error handler untuk semua jenis error di aplikasi.
+//
+// Centralized error handling dengan categorization untuk
+// memberikan pesan user-friendly dalam Bahasa Indonesia.
 
 /// Kategori error untuk grouping dan handling berbeda di UI
 enum ErrorCategory {

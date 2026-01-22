@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/snackbar_utils.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../providers/user_management_provider.dart';
 import '../../widgets/error_screen.dart';
@@ -26,28 +27,18 @@ class _AdminUserListScreenState extends ConsumerState<AdminUserListScreen> {
     // Show loading indicator for operations
     if (managementState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Show loading overlay
+        // Show loading overlay logic here if implemented
       });
     }
 
     // Show success/error messages
     ref.listen(userManagementProvider, (previous, next) {
       if (next.successMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.successMessage!),
-            backgroundColor: Colors.green.shade700,
-          ),
-        );
+        SnackBarUtils.showSuccess(context, next.successMessage!);
         ref.read(userManagementProvider.notifier).clearMessages();
       }
       if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
+        SnackBarUtils.showError(context, next.error!);
         ref.read(userManagementProvider.notifier).clearMessages();
       }
     });
@@ -578,9 +569,7 @@ class _AdminUserListScreenState extends ConsumerState<AdminUserListScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (nameController.text.isEmpty || emailController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please fill all fields')),
-                  );
+                  SnackBarUtils.showInfo(context, 'Please fill all fields');
                   return;
                 }
                 final newUser = UserEntity(
@@ -602,9 +591,13 @@ class _AdminUserListScreenState extends ConsumerState<AdminUserListScreen> {
       ),
     );
   }
-
+  
+  // ... rest of the file ...
+  // No changes needed for _showEditUserDialog and others unless they use SnackBar, checking...
+  
   void _showEditUserDialog(BuildContext context, UserEntity user) {
-    final nameController = TextEditingController(text: user.name);
+     // ... same as before
+     final nameController = TextEditingController(text: user.name);
     final emailController = TextEditingController(text: user.email);
 
     showDialog(

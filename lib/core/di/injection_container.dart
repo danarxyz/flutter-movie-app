@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+import '../network/dio_client.dart';
 import '../../domain/repositories/movie_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/watchlist_repository.dart';
@@ -20,7 +21,9 @@ final sl = GetIt.instance;
 
 Future<void> init() async {
   //! External
-  sl.registerLazySingleton(() => Dio());
+  sl.registerLazySingleton<DioClient>(() => DioClient());
+  sl.registerLazySingleton<Dio>(() => sl<DioClient>().dio);
+  
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
   sl.registerLazySingleton(() => FirebaseAuth.instance);
@@ -59,5 +62,3 @@ Future<void> init() async {
   //! Features - Authentication & Movies
   // ViewModels/Providers will be registered here later when Presentation layer is built
 }
-
-
