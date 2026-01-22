@@ -1,271 +1,128 @@
-# Flutter Movie Recommendation
+# Watchly 🎬
 
-Aplikasi mobile untuk rekomendasi film dan TV series yang dibangun dengan Flutter. Aplikasi ini menggunakan The Movie Database (TMDB) API untuk mendapatkan informasi film dan TV series terkini.
+**Watchly** is a modern Movie & TV Show recommendation application built with **Flutter**. It utilizes **Clean Architecture** principles and **Riverpod** for state management, providing a robust, scalable, and responsive user experience.
 
-## Fitur
+![Watchly Banner](https://via.placeholder.com/1200x500.png?text=Watchly+App+Preview)
+*(Replace this link with your actual app screenshot later)*
 
-- **Autentikasi User**: Login dan registrasi dengan sistem authentication
-- **Browse Movies**: Menjelajahi koleksi film populer, terbaru, dan trending
-- **Browse TV Shows**: Menjelajahi koleksi TV series populer dan terbaru
-- **Search**: Mencari film dan TV series berdasarkan judul
-- **Favorites**: Menyimpan film dan TV series favorit secara lokal
-- **Detail Page**: Melihat informasi lengkap film/TV series termasuk rating, overview, dan backdrop image
-- **User Management**: Manajemen user dengan role-based access (khusus admin)
-- **Profile Management**: Update foto profil dan informasi user
-- **Light & Dark Mode**: Mendukung tema terang dan gelap yang mengikuti sistem
+## ✨ Features
 
-## Screenshots
+*   **Authentication:** Secure Login, Sign Up, and Forgot Password using **Firebase Auth**.
+*   **Home Feed:** Browse Trending, Popular, Top Rated Movies, TV Shows, and Anime.
+*   **Rich Details:** View cast, ratings, overview, and production details.
+*   **Search:** Real-time search for movies and TV series.
+*   **Watchlist:** Save your favorite content locally/cloud with Undo functionality.
+*   **Admin Panel:** User management system (CRUD) for administrators.
+*   **Modern UI:** Material 3 Dark Theme with haptic feedback and smooth animations.
+*   **Responsive:** Optimized for Mobile and Tablet layouts.
 
-(Tambahkan screenshot aplikasi di sini)
+## 🛠 Tech Stack
 
-## Tech Stack
+*   **Framework:** [Flutter](https://flutter.dev/) (Dart)
+*   **State Management:** [Flutter Riverpod](https://riverpod.dev/) (v2)
+*   **Architecture:** Clean Architecture (Domain, Data, Presentation layers)
+*   **Navigation:** [GoRouter](https://pub.dev/packages/go_router)
+*   **Networking:** [Dio](https://pub.dev/packages/dio) with Interceptors
+*   **Backend:** [Firebase](https://firebase.google.com/) (Auth, Firestore)
+*   **API:** [The Movie Database (TMDB)](https://www.themoviedb.org/)
+*   **Local Storage:** Shared Preferences / Secure Storage
 
-- **Framework**: Flutter SDK ^3.10.0
-- **State Management**: Provider ^6.1.1
-- **Database**: SQLite (sqflite ^2.3.0)
-- **HTTP Client**: http ^1.2.0
-- **Image Caching**: cached_network_image ^3.3.1
-- **Local Storage**: shared_preferences ^2.2.2
-- **API**: The Movie Database (TMDB) API v3
+## 🚀 Getting Started
 
-## Prerequisites
+Follow these steps to run the project locally.
 
-Sebelum memulai, pastikan Anda telah menginstall:
+### Prerequisites
 
-- Flutter SDK (versi 3.10.0 atau lebih tinggi)
-- Dart SDK (sudah termasuk dalam Flutter)
-- Android Studio / VS Code dengan Flutter extension
-- Android Emulator atau iOS Simulator / Physical Device
+*   Flutter SDK (Latest Stable)
+*   Java Development Kit (JDK) 11 or 17
+*   Android Studio / VS Code
+*   A TMDB API Key
 
-Untuk memeriksa instalasi Flutter, jalankan:
+### Installation
 
-```bash
-flutter doctor
-```
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/your-username/flutter_movie_recommendation.git
+    cd flutter_movie_recommendation
+    ```
 
-## Instalasi
+2.  **Install Dependencies**
+    ```bash
+    flutter pub get
+    ```
 
-### 1. Clone Repository
+3.  **Environment Setup (.env)**
+    Create a file named `.env` in the root directory of the project. Add your TMDB API Key:
+    ```env
+    TMDB_API_KEY=your_tmdb_api_key_here
+    TMDB_BASE_URL=https://api.themoviedb.org/3
+    ```
 
-```bash
-git clone <repository-url>
-cd flutter_movie_recommendation
-```
+4.  **Firebase Setup**
+    This project uses Firebase. You need to configure it for your own project:
+    *   Create a project on [Firebase Console](https://console.firebase.google.com/).
+    *   Enable **Authentication** (Email/Password) and **Firestore Database**.
+    *   Use FlutterFire CLI to generate configuration:
+        ```bash
+        flutterfire configure
+        ```
+    *   *Alternatively*, place your `google-services.json` in `android/app/`.
 
-### 2. Install Dependencies
+5.  **Run the App**
+    ```bash
+    flutter run
+    ```
 
-Jalankan perintah berikut untuk menginstall semua dependencies yang diperlukan:
+## 📂 Project Structure
 
-```bash
-flutter pub get
-```
-
-### 3. Konfigurasi API Key (Opsional)
-
-Project ini sudah dikonfigurasi dengan TMDB API key. Namun, jika Anda ingin menggunakan API key sendiri:
-
-1. Daftar di [The Movie Database (TMDB)](https://www.themoviedb.org/)
-2. Dapatkan API Key dari [TMDB API Settings](https://www.themoviedb.org/settings/api)
-3. Update file `lib/config/api_config.dart`:
-
-```dart
-class ApiConfig {
-  static const String apiKey = 'YOUR_API_KEY_HERE';
-  static const String accessToken = 'YOUR_ACCESS_TOKEN_HERE';
-  // ...
-}
-```
-
-### 4. Jalankan Aplikasi
-
-#### Android
-
-```bash
-flutter run
-```
-
-#### iOS
-
-```bash
-flutter run
-```
-
-#### Web
-
-```bash
-flutter run -d chrome
-```
-
-## Struktur Project
+This project follows **Clean Architecture** to separate concerns and ensure testability.
 
 ```
 lib/
-├── config/
-│   └── api_config.dart           # Konfigurasi API TMDB
-├── models/
-│   ├── movie.dart                # Model data Movie
-│   ├── tv_show.dart              # Model data TV Show
-│   ├── media_item.dart           # Model abstrak untuk media
-│   └── user.dart                 # Model data User
-├── providers/
-│   ├── auth_provider.dart        # State management untuk authentication
-│   ├── movie_provider.dart       # State management untuk movies
-│   ├── tv_provider.dart          # State management untuk TV shows
-│   ├── search_provider.dart      # State management untuk search
-│   └── favorites_provider.dart   # State management untuk favorites
-├── screens/
-│   ├── auth/
-│   │   ├── login_screen.dart     # Halaman login
-│   │   └── register_screen.dart  # Halaman registrasi
-│   ├── movies/
-│   │   ├── movies_screen.dart    # Halaman daftar movies
-│   │   └── movie_detail_screen.dart  # Halaman detail movie
-│   ├── tv_shows/
-│   │   ├── tv_shows_screen.dart  # Halaman daftar TV shows
-│   │   └── tv_detail_screen.dart # Halaman detail TV show
-│   ├── search/
-│   │   └── search_screen.dart    # Halaman pencarian
-│   ├── favorites/
-│   │   └── favorites_screen.dart # Halaman favorites
-│   ├── profile/
-│   │   └── profile_screen.dart   # Halaman profil user
-│   ├── user_management/
-│   │   ├── user_management_screen.dart  # Halaman manajemen user (admin)
-│   │   ├── add_user_screen.dart         # Halaman tambah user
-│   │   └── edit_user_screen.dart        # Halaman edit user
-│   └── main_screen.dart          # Main screen dengan bottom navigation
-├── services/
-│   ├── tmdb_service.dart         # Service untuk TMDB API
-│   └── database_helper.dart      # Helper untuk SQLite database
-├── widgets/
-│   ├── media_card.dart           # Widget card untuk media
-│   ├── media_list.dart           # Widget list untuk media
-│   ├── favorite_button.dart      # Widget button favorite
-│   ├── rating_widget.dart        # Widget untuk menampilkan rating
-│   ├── backdrop_widget.dart      # Widget untuk backdrop image
-│   └── info_row_widget.dart      # Widget untuk info row
-└── main.dart                     # Entry point aplikasi
+├── core/                   # Core functionality (Constants, Errors, Utils, DI)
+│   ├── constants/
+│   ├── di/                 # Dependency Injection (GetIt)
+│   ├── error/
+│   ├── network/            # Dio Client & Interceptors
+│   ├── theme/              # App Theme & Colors
+│   └── utils/              # Extensions, Snackbars, Validators
+│
+├── data/                   # Data Layer (Repositories impl, Data Sources, Models)
+│   ├── datasources/        # Remote (API) & Local Data Sources
+│   ├── models/             # DTOs (Data Transfer Objects) from JSON
+│   └── repositories/       # Implementation of Domain Repositories
+│
+├── domain/                 # Domain Layer (Entities, UseCases, Repository Interfaces)
+│   ├── entities/           # Pure Dart Objects
+│   ├── repositories/       # Abstract Interfaces
+│   └── usecases/           # Business Logic
+│
+├── presentation/           # Presentation Layer (UI & State)
+│   ├── providers/          # Riverpod Providers
+│   ├── screens/            # Screen Widgets (Home, Detail, Auth, etc.)
+│   └── widgets/            # Reusable UI Components
+│
+└── main.dart               # Entry Point
 ```
 
-## Dependencies
+## 🧪 Testing
 
-### Production Dependencies
-
-| Package | Version | Deskripsi |
-|---------|---------|-----------|
-| cupertino_icons | ^1.0.8 | Icon set iOS style |
-| http | ^1.2.0 | HTTP client untuk API calls |
-| provider | ^6.1.1 | State management solution |
-| cached_network_image | ^3.3.1 | Caching gambar dari network |
-| shared_preferences | ^2.2.2 | Local storage key-value |
-| intl | ^0.19.0 | Internationalization dan formatting |
-| sqflite | ^2.3.0 | SQLite database |
-| path_provider | ^2.1.1 | Path ke storage directory |
-| path | ^1.8.3 | Path manipulation |
-| image_picker | ^1.0.7 | Pick image dari gallery/camera |
-| crypto | ^3.0.3 | Cryptographic hashing |
-
-### Dev Dependencies
-
-| Package | Version | Deskripsi |
-|---------|---------|-----------|
-| flutter_test | sdk | Testing framework |
-| flutter_lints | ^6.0.0 | Linting rules |
-
-## Kredensial Default
-
-Untuk testing, aplikasi memiliki user default:
-
-**Admin Account:**
-- Username: `admin`
-- Password: `admin123`
-
-**Regular User:**
-- Atau buat akun baru melalui halaman registrasi
-
-## Build untuk Production
-
-### Android (APK)
+To run unit and widget tests:
 
 ```bash
-flutter build apk --release
+flutter test
 ```
 
-Output: `build/app/outputs/flutter-apk/app-release.apk`
+## 🤝 Contributing
 
-### Android (App Bundle)
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```bash
-flutter build appbundle --release
-```
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-Output: `build/app/outputs/bundle/release/app-release.aab`
+## 📄 License
 
-### iOS
-
-```bash
-flutter build ios --release
-```
-
-## Troubleshooting
-
-### Gradle Build Error (Android)
-
-Jika mengalami error saat build untuk Android, coba:
-
-```bash
-cd android
-./gradlew clean
-cd ..
-flutter clean
-flutter pub get
-```
-
-### iOS Build Error
-
-Pastikan CocoaPods terinstall dan dependencies sudah di-update:
-
-```bash
-cd ios
-pod install
-cd ..
-```
-
-### SQLite Error
-
-Jika mengalami error database, hapus dan reinstall aplikasi untuk reset database.
-
-## API Reference
-
-Project ini menggunakan [The Movie Database (TMDB) API](https://developers.themoviedb.org/3). Endpoints yang digunakan:
-
-- `GET /movie/popular` - Daftar film popular
-- `GET /movie/now_playing` - Film yang sedang tayang
-- `GET /movie/top_rated` - Film dengan rating tertinggi
-- `GET /movie/{id}` - Detail film
-- `GET /tv/popular` - Daftar TV series popular
-- `GET /tv/top_rated` - TV series dengan rating tertinggi
-- `GET /tv/{id}` - Detail TV series
-- `GET /search/multi` - Search multi (film & TV)
-
-## Contributing
-
-Kontribusi selalu diterima! Silakan:
-
-1. Fork repository ini
-2. Buat branch baru (`git checkout -b feature/AmazingFeature`)
-3. Commit perubahan (`git commit -m 'Add some AmazingFeature'`)
-4. Push ke branch (`git push origin feature/AmazingFeature`)
-5. Buat Pull Request
-
-## License
-
-Project ini dibuat untuk keperluan edukasi dan pembelajaran Flutter development.
-
-## Contact
-
-Untuk pertanyaan atau saran, silakan buat issue di repository ini.
-
----
-
-Dibuat dengan Flutter
+This project is open source and available under the [MIT License](LICENSE).
