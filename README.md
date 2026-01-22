@@ -2,9 +2,6 @@
 
 **Watchly** is a modern Movie & TV Show recommendation application built with **Flutter**. It utilizes **Clean Architecture** principles and **Riverpod** for state management, providing a robust, scalable, and responsive user experience.
 
-![Watchly Banner](https://via.placeholder.com/1200x500.png?text=Watchly+App+Preview)
-*(Replace this link with your actual app screenshot later)*
-
 ## ✨ Features
 
 *   **Authentication:** Secure Login, Sign Up, and Forgot Password using **Firebase Auth**.
